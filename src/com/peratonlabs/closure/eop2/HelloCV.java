@@ -64,44 +64,23 @@ public class HelloCV
         VideoCapture capture = new VideoCapture(0);
         
         // Reading the next video frame from the camera
-        Mat matrix = new Mat();
-        capture.read(matrix);
-        
-        long imgSize = matrix.total() * matrix.elemSize();
-        
-        byte[] bytes = new byte[(int) imgSize];
-        matrix.get(0,0,bytes);
-        // now somehow save mat.type(), mat.rows(), mat.cols() and the bytes, later restore it:
-        Mat m2 = new Mat(matrix.rows(), matrix.cols(), matrix.type());
-        m2.put(0,0, bytes);
-        
-        System.out.println("image size : " + imgSize);
-        System.out.println(matrix.toString());
-        
-        HighGui.imshow("Image", matrix);
-        HighGui.waitKey();
-        
-    }
-    
-    public static void mainZ(String[] args) {
-        // Load Native Library
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        // image container object
-        Mat imageArray = new Mat();
-        // Video device acces
-        VideoCapture videoDevice = new VideoCapture();
-        // 0:Start default video device 1,2 etc video device id
-        videoDevice.open(0);
-        // is contected
-        if (videoDevice.isOpened()) {
-        // Get frame from camera
-            videoDevice.read(imageArray);
-            // image array
-            System.out.println(imageArray.toString());
-            // Release video device
-            videoDevice.release();
-        } else {
-            System.out.println("Error.");
+        while (true) {
+            Mat mat = new Mat();
+            capture.read(mat);
+
+            long imgSize = mat.total() * mat.elemSize();
+
+            byte[] bytes = new byte[(int) imgSize];
+            mat.get(0,0,bytes);
+            // now somehow save mat.type(), mat.rows(), mat.cols() and the bytes, later restore it:
+            Mat m2 = new Mat(mat.rows(), mat.cols(), mat.type());
+            m2.put(0,0, bytes);
+
+            System.out.println("image size : " + imgSize + " rows: " + mat.rows() + " cols: " + mat.cols() + " :" + mat.type());
+            System.out.println(mat.toString());
+
+            HighGui.imshow("Image", mat);
+            HighGui.waitKey();
         }
     }
 }
