@@ -1,0 +1,42 @@
+# Remote Attestation on Zephyr/Nordic nRF9160
+This directory contains the SEDIMENT app that tests remote attestation on the Nordic nRF9160.
+
+To build SEDIMENT for nRF9160,
+
+- Download and install Nordic SDK [nRF Connect](http://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/index.html). 
+
+- Open SEGGER Embedded Studio
+- Select File>Open nRF Connect SDK Project
+- Check the Cellular box
+- Select udp from Projects
+- Select nrf9160dk_nrf9160 from Board Name
+
+- Select Project>Configure nRF Connect SDK PRoject
+- Select menuconfig
+- Click the Load button
+- Select $SEDIMENT/apps/nordic/doc/dot.config
+- Click the Configure button
+
+- Select Project>Configure nRF Connect SDK PRoject
+- Select spm_menuconfig
+- Click the Load button
+- Select $SEDIMENT/apps/nordic/doc/spm_dot.config
+- Click the Configure button
+
+- Right click on Project 'app/libapp.a' in the Project Explorer
+- Select Open CMakeList.txt in Editor
+- Replace its contents with $SEDIMENT/apps/nordic/doc/project.cmake
+- The file list the source and include files needed for the project.
+- Edit the file, if necessary, to fix the pathnames in your environment.
+
+- Select Build>Build Solution to see if the project buildsd properly.
+
+- Select Build>Build and Run to download to the device.
+
+
+Command Line Build (6/4/2022)
+
+- Download and install nRF Connect for Desktop, toolchain and SDK [nRF Connect](hhttps://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/gs_assistant.html). 
+- pip3 install ninja
+- Follow the instructions at [Command Line Build](hhttps://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/gs_assistant.html). 
+- cd nrf/samples/nRF9160/at_client

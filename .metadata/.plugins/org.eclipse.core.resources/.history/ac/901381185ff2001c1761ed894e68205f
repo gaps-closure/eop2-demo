@@ -1,0 +1,25 @@
+/**
+ * Copyright (c) 2022 All rights reserved
+ * Peraton Labs, Inc.
+ *
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited. 
+ *
+ * @author tchen
+ *
+ * Jun 22, 2022
+ */
+package com.peratonlabs.closure.eop2;
+
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+
+public class HelloCV
+{
+    public static void main(String[] args) {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        Mat mat = Mat.eye(3, 3, CvType.CV_8UC1);
+        System.out.println("mat = " + mat.dump());
+    }
+}

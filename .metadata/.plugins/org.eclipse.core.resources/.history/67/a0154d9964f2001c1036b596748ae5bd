@@ -1,0 +1,113 @@
+/**
+ * Copyright (c) 2022 All rights reserved
+ * Peraton Labs, Inc.
+ *
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited. 
+ *
+ * @author tchen
+ *
+ * Jun 22, 2022
+ */
+package com.peratonlabs.closure.eop2;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.highgui.HighGui;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.videoio.VideoCapture;
+
+public class HelloCV
+{
+    public static void mainX(String[] args) {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        Mat mat = Mat.eye(3, 3, CvType.CV_8UC1);
+        System.out.println("mat = " + mat.dump());
+    }
+
+    public static void mainY(String[] args) {
+
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
+        var srcImage = Imgcodecs.imread("/home/tchen/duke.png", Imgcodecs.IMREAD_UNCHANGED);
+
+        List<Mat> channels = new ArrayList<>();
+        Core.split(srcImage, channels);
+        var chAlpha = channels.get(3); // 4th channel = Alpha
+
+        Imgproc.cvtColor(srcImage, srcImage, Imgproc.COLOR_BGRA2GRAY);
+
+        List<Mat> greyChannel = new ArrayList<>();
+        Core.split(srcImage, greyChannel);
+        var chGray = greyChannel.get(0);
+
+        Mat grayDuke = new Mat();
+        var listMat = Arrays.asList(chGray, chGray, chGray, chAlpha); // 3
+                                                                      // channels
+                                                                      // + Alpha
+        Core.merge(listMat, grayDuke);
+
+        Imgcodecs.imwrite("duke_gray.png", grayDuke);
+
+    }
+
+    public static void main(String[] args) {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        
+        // Instantiating the VideoCapture class (camera:: 0)
+        VideoCapture capture = new VideoCapture(0);
+        
+        // Reading the next video frame from the camera
+        Mat matrix = new Mat();
+        capture.read(matrix);
+        
+        long imgSize = matrix.total() * matrix.elemSize();
+        System.out.println("image size : " + imgSize);
+        System.out.println(matrix.toString());
+        
+        HighGui.imshow("Image", matrix);
+        HighGui.waitKey();
+        
+        
+//        CanvasFrame canvas = new CanvasFrame("Web Cam");
+//        canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//
+//        FrameGrabber grabber = new OpenCVFrameGrabber(0);
+//        OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
+//        grabber.start();
+//        Frame frame = grabber.grab();
+//        IplImage img = converter.convert(frame);
+//        cvSaveImage("selfie.jpg", img);
+//        canvas.showImage(frame);
+//        Thread.sleep(2000);
+//        canvas.dispatchEvent(new WindowEvent(canvas, WindowEvent.WINDOW_CLOSING));
+    }
+    
+    public static void mainZ(String[] args) {
+        // Load Native Library
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        // image container object
+        Mat imageArray = new Mat();
+        // Video device acces
+        VideoCapture videoDevice = new VideoCapture();
+        // 0:Start default video device 1,2 etc video device id
+        videoDevice.open(0);
+        // is contected
+        if (videoDevice.isOpened()) {
+        // Get frame from camera
+            videoDevice.read(imageArray);
+            // image array
+            System.out.println(imageArray.toString());
+            // Release video device
+            videoDevice.release();
+        } else {
+            System.out.println("Error.");
+        }
+    }
+}

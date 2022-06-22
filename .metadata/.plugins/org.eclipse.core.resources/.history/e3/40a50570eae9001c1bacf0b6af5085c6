@@ -1,0 +1,55 @@
+﻿/*
+ * Copyright (c) 2022 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * June 10, 2022
+ */
+#pragma once
+
+#include "Config.hpp"
+#include "Device.hpp"
+#include "ProvisionCL.hpp"
+
+extern Col cols[];
+
+using namespace std;
+
+class Provision
+{
+private:
+    ProvisionCL &cli;
+    Config &config;
+
+    Params params;
+    SecretKey encryptSK;
+    SecretKey signSK;
+    MasterKey msk;
+
+public:
+    Provision(ProvisionCL &cli, Config &config) :
+        cli(cli),
+        config(config)
+    {
+    }
+
+    void wkdInit();
+    void genHeader(bool isPublisher, const string &outDir);
+    void genWkd(ofstream &fs, const string &deviceID, const string &uri, const string &outDir);
+    void writeWkd(ofstream &fs, const Params& params,
+                  const URIPath& uriPath, const TimePath& timePath);
+
+    void genDeviceJson();
+    void genDeviceCsv();
+    void genDeviceDB();
+    void genDevice(Device &device);
+    void gen();
+
+    void importJson();
+    void importCsv();
+    void import();
+
+    void run();
+};

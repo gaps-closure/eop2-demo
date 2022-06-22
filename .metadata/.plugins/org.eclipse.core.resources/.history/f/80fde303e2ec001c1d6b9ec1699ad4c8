@@ -1,0 +1,96 @@
+﻿/*
+ * Copyright (c) 2021 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * Oct 5, 2021
+ */
+
+#pragma once
+
+#include "StateMachine.hpp"
+#include "Board.hpp"
+#include "Crypto.hpp"
+#include "Seec.hpp"
+
+class Prover : public StateMachine
+{
+protected:
+    static const int MAX_CONN_WAIT  = 3600; // max connection wait time in seconds
+    static const int MAX_REJECT  = 5;       // # of consecutive rejected data messages
+    
+    Passport passport;                      // passport received from the verifier
+    Reason reason = INIT;                   // reason for starting attestation
+
+    Endpoint rpEndpoint;                    // saved relying party endpoint
+    MessageID expecting = CONFIG;
+    int mySock = -1;
+
+    MessageCounter procSeq = 0;             // monotonically increasing SQN of procedure invocation
+    uint32_t rejectCount = 0;               // consecutive times of data being rejected
+    uint32_t attestSqn = 0;                 // current attestation sequence number
+
+    Seec seec;
+
+    void runProcedure(int sock);
+    Message *decodeMessage(uint8_t dataArray[], uint32_t len);
+    
+    bool moveTo(MessageID id, Message *received);
+    bool handleMessage(Message *message);
+
+    Message *prepareConfig(Message *received);
+    bool handleConfig(Message *received);
+
+    Message *preparePassportRequest(Message *received);
+    bool handlePassportResponse(Message *message);
+    Message *prepareAttestationRequest(Message *received);
+    bool handleChallenge(Message *message);
+    Message *prepareEvidence(Message *received);
+    bool handleGrant(Message *message);
+    Message *preparePassportCheck(Message *received);
+    bool handlePermission(Message *message);
+    Message *prepareKeyChange(Message *received);
+    Message *prepareData(Message *received);
+    bool handleResult(Message *message);
+
+    void setTimestamp(Message *message);
+    void pause();
+
+    bool preapreEvidenceBootTime(Challenge *challenge, EvidenceItem *item);
+    bool preapreEvidenceOsVersion(Challenge *challenge, EvidenceItem *item);
+    bool prepareEvidenceFullFirmware(Challenge *challenge, EvidenceItem *item, uint32_t *elapsed, int *optional);
+
+public:
+    Prover(Config &config, Board *board)
+        : StateMachine(config, board),
+          seec(config) {
+
+        this->endpoint.copy(*config.getComponent().getOutgoing());
+        this->rpEndpoint.copy(endpoint);
+
+        Crypto *crypto = seec.getCrypto();
+        vector<uint8_t> &enc_key = config.getEncKey();
+        crypto->changeKey(KEY_ENCRYPTION, (unsigned char*)&enc_key[0], enc_key.size());
+        crypto->changeKey(KEY_ATTESTATION, (unsigned char*)&attest_key[0], attest_key.size());
+        crypto->changeKey(KEY_AUTH, (unsigned char*)&auth_key[0], auth_key.size());
+    }
+
+    void run();
+
+    Seec &getSeec() {
+        return seec;
+    }
+
+    // invoked when endpoints are loaded from flash
+    void reInitEndpoints(Protocol protocol, string addr, int port) {
+        endpoint.setProtocol(protocol);
+        endpoint.setAddress(addr);
+        endpoint.setPort(port);
+
+        rpEndpoint.setProtocol(protocol);
+        rpEndpoint.setAddress(addr);
+        rpEndpoint.setPort(port);
+    }
+};

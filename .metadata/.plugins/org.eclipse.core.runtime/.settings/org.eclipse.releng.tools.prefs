@@ -1,0 +1,5 @@
+eclipse.preferences.version=1
+org.eclipse.releng.tools.copyrightTemplate=Copyright (c) ${date} Peraton Labs, Inc  - All Rights Reserved.\nProprietary and confidential. Unauthorized copy or use of this file, via\nany medium or mechanism is strictly prohibited. \n   \n@author tchen\n\n
+org.eclipse.releng.tools.ignoreXml=true
+org.eclipse.releng.tools.replaceAllExisting=true
+org.eclipse.releng.tools.workspaceValidated=1

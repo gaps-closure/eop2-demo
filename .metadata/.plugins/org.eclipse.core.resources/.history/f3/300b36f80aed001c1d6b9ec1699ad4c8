@@ -1,0 +1,114 @@
+﻿/*
+ * Copyright (c) 2022 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * Oct 5, 2021
+ */
+
+#pragma once
+
+#include "Config.hpp"
+#include "Board.hpp"
+#include "CommandLine.hpp"
+
+using namespace std;
+
+enum ProvisionFormat {
+    JSON = 1,
+    CSV = 2,
+    DB = 3,
+
+    BAD_FORMAT = 99
+};
+
+enum ProvisionMode {
+    GEN = 1,
+    IMPORT = 2,
+
+    BAD_MODE = 99
+};
+
+class ProvisionCL : public CommandLine
+{
+private:
+    ProvisionMode mode = GEN;
+    ProvisionFormat inputFormat = JSON;
+    ProvisionFormat outputFormat = DB;
+
+    string configFile = "../../../data/config.ini";
+    string inputFile = "../../../data/devices-template.json";
+
+    string uri = "Group1/BuildingA/Floor2";
+    string outputDir = "/tmp/sediment";
+
+    int paramLen = 11;
+
+public:
+    ProvisionCL() :
+        CommandLine()
+    {
+    }
+
+    void parseCmdline(int argc, char *argv[]);
+    void printUsage(char *cmd);
+
+    const string& getInputFile() const {
+        return inputFile;
+    }
+
+    void setInputFile(const string &inputFile = "../../../data/devices-template.json") {
+        this->inputFile = inputFile;
+    }
+
+    ProvisionFormat getInputFormat() const {
+        return inputFormat;
+    }
+
+    void setInputFormat(ProvisionFormat inputFormat = JSON) {
+        this->inputFormat = inputFormat;
+    }
+
+    ProvisionMode getMode() const {
+        return mode;
+    }
+
+    void setMode(ProvisionMode mode = GEN) {
+        this->mode = mode;
+    }
+
+    ProvisionFormat getOutputFormat() const {
+        return outputFormat;
+    }
+
+    void setOutputFormat(ProvisionFormat outputFormat = DB) {
+        this->outputFormat = outputFormat;
+    }
+
+    const string& getUri() const {
+        return uri;
+    }
+
+    void setUri(const string &uri = "Group1/BuildingA/Floor2") {
+        this->uri = uri;
+    }
+
+    const string& getOutputDir() const {
+        return outputDir;
+    }
+
+    void setOutputDir(const string &outputDir = "/tmp/sediment") {
+        this->outputDir = outputDir;
+    }
+
+    int getParamLen() const {
+        return paramLen;
+    }
+
+    void setParamLen(int paramLen = 11) {
+        this->paramLen = paramLen;
+    }
+};
+

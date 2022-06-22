@@ -1,0 +1,121 @@
+﻿/*
+ * Copyright (c) 2021 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * Oct 5, 2021
+ */
+
+#include <iostream>
+#include <getopt.h>
+
+#include "Log.hpp"
+#include "ProvisionCL.hpp"
+
+using namespace std;
+
+ProvisionMode toProvisionMode(string mode)
+{
+    if (!mode.compare("GEN"))
+        return GEN;
+    else if (!mode.compare("IMPORT"))
+        return IMPORT;
+    else {
+        SD_LOG(LOG_ERR, "bad mode: %s", mode.c_str());
+        return BAD_MODE;
+    }
+}
+
+ProvisionFormat toProvisionFormat(string format)
+{
+    if (!format.compare("JSON"))
+        return JSON;
+    else if (!format.compare("CSV"))
+        return CSV;
+    else if (!format.compare("DB"))
+        return DB;
+    else {
+        SD_LOG(LOG_ERR, "bad format: %s", format.c_str());
+        return BAD_FORMAT;
+    }
+}
+
+void ProvisionCL::printUsage(char *cmd)
+{
+    cout << cmd << endl
+         << "  -f/--config-file <json-config>\n\t"
+         << "Use the specified configuration file in json. default: ../../../data/config.json" << endl
+
+         << "  -i/--input-file <file> \n\t"
+         << "Read the devices from the <file>. default: ../../../data/devices-template.json" << endl
+
+         << "  -o/--output-file <file>\n\t"
+         << "Output destination. Ignored if output-format is DB. default: ../../../data/devices.txt" << endl
+
+         << "  -m/--provision-mode [ GEN | IMPORT ]\n\t"
+         << "Whether to generate devices or import from files. default: GEN" << endl
+
+         << "  -j/--input-format [ JSON | CSV ] \n\t"
+         << "Input file format. Ignored if GEN mode, which only uses JSON input. default: JSON" << endl
+
+         << "  -p/--output-format [ JSON | CSV | DB ] \n\t"
+         << "Output file format. default DB" << endl
+
+         << "  -u/--wkd-ibe-uri <URI> \n\t"
+         << "WKD-IBE URI. default Group1/BuildingA/Floor2" << endl
+
+         << "  -h/--help\n\t"
+         << "This help." << endl
+         ;
+      exit(0);
+}
+
+void ProvisionCL::parseCmdline(int argc, char *argv[])
+{
+    int c;
+
+    struct option long_options[] = {
+        {"config-file",      required_argument, 0, 'f'},
+        {"input-file",       required_argument, 0, 'i'},
+        {"output-file",      required_argument, 0, 'o'},
+        {"provision-mode",   required_argument, 0, 'm'},
+        {"input-format",     required_argument, 0, 'j'},
+        {"output-format",    required_argument, 0, 'p'},
+        {"output-format",    required_argument, 0, 'u'},
+        {"help",             no_argument,       0, 'h'},
+        {0, 0, 0, 0}
+    };
+
+    int option_index = 0;
+    while ((c = getopt_long(argc, argv, "hf:j:p:i:o:m:",
+                            long_options, &option_index)) != -1) {
+        switch (c) {
+        case 'f':
+            configFile = optarg;
+            break;
+        case 'j':
+            inputFormat = toProvisionFormat(optarg);
+            break;
+        case 'p':
+            outputFormat = toProvisionFormat(optarg);
+            break;
+        case 'i':
+            inputFile = optarg;
+            break;
+        case 'o':
+            outputFile = optarg;
+            break;
+        case 'm':
+            mode = toProvisionMode(optarg);
+            break;
+        case 'h':
+            printUsage(argv[0]);
+            break;
+        default:
+            printUsage(argv[0]);
+            break;
+       }
+    }
+}

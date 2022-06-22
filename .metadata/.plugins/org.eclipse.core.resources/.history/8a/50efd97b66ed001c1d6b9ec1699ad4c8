@@ -1,0 +1,88 @@
+ [
+        { "id": "Ubuntu",
+          "firmware": "../../../data/testfiles/sediment",
+          "osVersion": "Ubuntu 20.04.3 LTS",
+          "firmwareSize": 8939384,
+          "verifierEndpoint": {
+              "protocol": "tcp",
+              "address": "10.139.80.148",
+              "port": 8100
+          },
+          "relyingPartyEndpoint": {
+              "protocol": "tcp",
+              "address": "10.139.80.148",
+              "port": 8000
+          },
+          "sqn": 2,
+          "status": true
+        },
+
+        { "id": "RPI",
+          "firmware": "../../../data/testfiles/sediment-rpi",
+          "osVersion": "Raspbian GNU/Linux 10 (buster)",
+          "firmwareSize": 10309288,
+          "verifierEndpoint": {
+              "protocol": "tcp",
+              "address": "10.139.80.148",
+              "port": 8100
+          },
+          "relyingPartyEndpoint": {
+              "protocol": "tcp",
+              "address": "10.139.80.148",
+              "port": 8000
+          },
+          "sqn": 10,
+          "status": false
+        },
+        
+        { "id": "Giant_Gecko",
+          "firmware": "../../../data/testfiles/zephyr-GG.bin",
+          "osVersion": "Zephyr_3.1.99",
+          "firmwareSize": 458700,
+          "verifierEndpoint": {
+              "protocol": "tcp",
+              "address": "10.139.80.148",
+              "port": 8100
+          },
+          "relyingPartyEndpoint": {
+              "protocol": "tcp",
+              "address": "10.139.80.148",
+              "port": 8000
+          },
+          "sqn": 3
+        },
+        
+        { "id": "Nordic",
+          "firmware": "../../../data/testfiles/zephyr-nRF9160.bin",
+          "osVersion": "Zephyr_3.1.99",
+          "firmwareSize": 370348,
+          "verifierEndpoint": {
+              "protocol": "tcp",
+              "address": "67.81.212.38",
+              "port": 8100
+          },
+          "relyingPartyEndpoint": {
+              "protocol": "tcp",
+              "address": "10.139.80.148",
+              "port": 8000
+          },
+          "sqn": 1
+        },
+        
+        { "id": "STM",
+          "firmware": "../../../data/testfiles/zephyr-STM.bin",
+          "firmwareSize": 474348,
+          "osVersion": "Zephyr_3.1.99",
+          "verifierEndpoint": {
+              "protocol": "tcp",
+              "address": "10.139.80.148",
+              "port": 8100
+          },
+          "relyingPartyEndpoint": {
+              "protocol": "tcp",
+              "address": "10.139.80.148",
+              "port": 8000
+          },
+          "sqn": 0
+        }
+    ]

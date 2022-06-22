@@ -1,0 +1,40 @@
+﻿/*
+ * Copyright (c) 2022 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * June 10, 2022
+ */
+#pragma once
+
+#include "Config.hpp"
+#include "Device.hpp"
+#include "ProvisionCL.hpp"
+
+extern Col cols[];
+
+using namespace std;
+
+class Provision
+{
+private:
+    ProvisionCL &cli;
+    Config &config;
+
+public:
+    Provision(ProvisionCL &cli, Config &config) :
+        cli(cli),
+        config(config)
+    {
+    }
+
+    void genDeviceJson();
+    void genDeviceCsv();
+    void genDeviceDB();
+    void importJson();
+    void importCsv();
+
+    void run();
+};

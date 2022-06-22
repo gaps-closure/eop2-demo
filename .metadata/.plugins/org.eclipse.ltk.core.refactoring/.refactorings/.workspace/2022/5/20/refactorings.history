@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;android-callgraph&apos;" deleteContents="true" description="Delete resource &apos;android-callgraph&apos;" element1="/android-callgraph" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1652299525769"/>&#x0A;<refactoring comment="Delete resource &apos;android-callgraph&apos;" deleteContents="true" description="Delete resource &apos;android-callgraph&apos;" element1="/android-callgraph" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1652299610055"/>
+</session>

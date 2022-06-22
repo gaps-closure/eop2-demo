@@ -1,0 +1,63 @@
+# SEDIMENT Provisioning
+This directory contains an application to generate configurations and key materials needed to provision SEDIMENT devices. 
+The application works in one of two modes, GEN or IMPORT. In the GEN mode, the app takes as input a list of device templates and generates devices by creating an ID and the corresponding keys and configurations for each device. The generated devices are inserted into the SEDIMENT sqlite database for system server operations, or saved in a JSON or CSV file for viewing purposes.
+In addition, for each device, the configurations and keys are saved individually in a file, which can be used to provision the device and save them to a persistent storage. Another set of output are two header files, wkd_lens_pub.h and wkd_lens_sub.h. They contains macros needed to build the publishers and subscribers, respectively.
+
+In the IMPORT mode, this app reads the devices in a CSV or JSON file and insert them, without modification, into the SEDIMENT database.
+
+## Contents
+- [Build](#build)
+- [GEN Mode](#gen-mode)
+- [IMPORT MOde](#import-mode)
+
+## Build
+Build the SEDIMENT provisioning as follows
+
+        $ cd $SEDIMENT/configs/operations
+        $ mkdir build; cd build
+        $ cmake ..; make
+
+Show the usage page with the -h option.
+
+```
+demo1$ ./provision -h
+./provision
+  -m/--provision-mode [ GEN | IMPORT ]
+      Whether to generate devices or import from files. default: GEN
+  -f/--config-file <json-config>
+      Use the specified configuration file in json. default: ../../../data/config.json
+  -i/--input-file <file> 
+      Read the devices from the <file>. default: ../../../data/devices-template.json
+  -d/--output-dir <dir>
+      Directory where all output files are generated. default: /tmp/sediment
+  -j/--input-format [ JSON | CSV ] 
+      Input file format. Ignored if GEN mode, which only uses JSON input. default: JSON
+  -p/--output-format [ JSON | CSV | DB ] 
+      Output file format. default DB
+  -u/--wkd-ibe-uri <URI> 
+      WKD-IBE URI. default Group1/BuildingA/Floor2
+  -l/--wdk-paramater-len <int> 
+      WKD-IBE paramter length. default 11
+  -h/--help
+      This help.
+```
+
+## GEN Mode
+        
+By default, the application runs in the GEN mode, with the default input device template in ../../../data/devices-template.json and the generated devices are inserted into the SEDIMENT sqlite database specified in the config file ../../../data/config.json.
+The device configurations and keys are saved in the default output directory, /tmp/sediment.
+To change the device template, use the -i option. In the template, the device's 'sqn' field is used to specify the number of devices for the corresponding device type. For example, if the sqn field of the Giant_Gecko device is 3, it means to generate 3 Giant Gecko's, with ID's in the format Giant_Gecko-<XXX> where XXX is a three digit number, starting from 001. The fields of the devices related to keys will be automatically generated. All other fields are filled in unchanged as specified in the template file.
+
+## IMPORT Mode
+As initially built, default board ID, server IP addresses and ports and other settings are included. To provision a device, prepare a configuration file, based on the sample, e.g., in $SEDIMENT/configs/boards/gg-01. Changes the options appropriately.
+
+Connect the board to the host PC.
+
+Open a serial terminal app, e.g. minicom or gtkterm, and connect to the detected deivce, e.g. at /dev/ttyACM0
+
+        $ minicom -D /dev/ttyACM0 
+
+In a separate terminal, run the provisioning script and give the configuration file as an argument as follows.
+
+        $ python $SEDIMENT/utils/provision.py provision $SEDIMENT/configs/boards/gg-01 
+

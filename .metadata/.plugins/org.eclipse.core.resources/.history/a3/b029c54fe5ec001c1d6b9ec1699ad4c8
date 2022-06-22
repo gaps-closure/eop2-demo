@@ -1,0 +1,45 @@
+﻿/*
+ * Copyright (c) 2021 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * Oct 5, 2021
+ */
+
+#include <iostream>
+
+#include "Config.hpp"
+#include "Device.hpp"
+#include "Verifier.hpp"
+#include "BoardServer.hpp"
+#include "CommandLine.hpp"
+#include "Utils.hpp"
+
+using namespace std;
+
+int main(int argc, char **argv)
+{
+    CommandLine cli;
+    cli.parseCmdline(argc, argv);
+
+    Config config(NV_PROVER);
+    config.parseFile("../../../configs/boards/+");
+
+    Utils::readRsaKey(cli.getRsaPrivateKey(), KeyDistRSA::getPrivateKey());
+    Utils::readRsaKey(cli.getRsaPublicKey(), KeyDistRSA::getPublicKey());
+
+    Board *board = new BoardServer();
+    Verifier verifier(config, board, cli);
+
+    // control from the GUI or other components
+    pthread_t control_thread;
+    int ret = pthread_create(&control_thread, NULL, Verifier::controlDummy, &verifier);
+    if (ret != 0) {
+        printf("control: thread create failed\n");
+        exit(1);
+    }
+    cout << config.toString() << endl;
+    verifier.run();
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename local variable &apos;methods&apos; in &apos;com.peratonlabs.closure.callgraph.Utils.root(...)&apos; to &apos;rootMethods&apos;&#x0A;- Original project: &apos;android-callgraph&apos;&#x0A;- Original element: &apos;com.peratonlabs.closure.callgraph.Utils.root(ArrayList&lt;MethodCG&gt;, int).methods&apos;&#x0A;- Renamed element: &apos;methods&apos;&#x0A;- Update references to refactored element" description="Rename local variable &apos;methods&apos;" id="org.eclipse.jdt.ui.rename.local.variable" input="/src&lt;com.peratonlabs.closure.callgraph{Utils.java[Utils~root~QArrayList\&lt;QMethodCG;&gt;;~I@methods!4602!4628!4622!4628!QArrayList\&lt;QMethodCG;&gt;;!0!true" name="rootMethods" references="true" stamp="1654091350396" version="1.0"/>
+</session>

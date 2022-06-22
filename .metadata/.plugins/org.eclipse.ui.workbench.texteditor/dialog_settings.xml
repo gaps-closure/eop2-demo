@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item key="selection" value=""/>
+		<item key="wrap" value="false"/>
+		<item key="casesensitive" value="true"/>
+		<item key="wholeword" value="false"/>
+		<item key="incremental" value="false"/>
+		<item key="isRegEx" value="false"/>
+		<list key="findhistory">
+			<item value="_pub"/>
+			<item value="write_data_to_file"/>
+			<item value="open"/>
+			<item value="toHex"/>
+			<item value="app"/>
+			<item value="FILE_PATH"/>
+			<item value="print_marshal"/>
+			<item value="\t"/>
+			<item value="conf"/>
+			<item value="APP_BANNER"/>
+			<item value="DT_CHOSEN_ZEPHYR_FLASH_CONTROLLER_LABEL"/>
+			<item value="lte_handler"/>
+			<item value="handlePassportResponse"/>
+			<item value="Challenge"/>
+			<item value="prepare"/>
+		</list>
+		<list key="replacehistory">
+			<item value=""/>
+			<item value="provision"/>
+			<item value="    "/>
+			<item value="that"/>
+			<item value="VERIFY"/>
+			<item value="SIGN"/>
+			<item value="verify"/>
+			<item value="sign"/>
+			<item value="sub"/>
+			<item value="SUB"/>
+			<item value="SEDIMENT &quot;"/>
+			<item value="params_pub"/>
+		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item key="DIALOG_X_ORIGIN" value="1486"/>
+		<item key="DIALOG_Y_ORIGIN" value="131"/>
+		<item key="DIALOG_WIDTH" value="363"/>
+		<item key="DIALOG_HEIGHT" value="437"/>
+		<item key="DIALOG_FONT_NAME" value="1|Ubuntu|11.0|0|GTK|1|"/>
+	</section>
+	<section name="org.eclipse.ui.texteditor.GotoLineAction$GotoLineDialog_dialogBounds">
+		<item key="DIALOG_X_ORIGIN" value="686"/>
+		<item key="DIALOG_Y_ORIGIN" value="386"/>
+	</section>
+</section>

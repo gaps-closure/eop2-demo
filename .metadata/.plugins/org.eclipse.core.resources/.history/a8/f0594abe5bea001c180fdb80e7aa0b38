@@ -1,0 +1,206 @@
+﻿/*
+ * Copyright (c) 2021 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * Oct 5, 2021
+ */
+#include <iostream>
+#include <sstream>
+#include <thread>
+
+#include "nv.h"
+#include "sediment.h"
+
+#include "Server.hpp"
+#include "Comm.hpp"
+#include "Device.hpp"
+#include "Utils.hpp"
+#include "Log.hpp"
+
+#define MESSAGE_BUF_SIZE    32000
+
+using namespace std;
+
+void Server::run()
+{
+    int port = endpoint.getPort();
+
+    int server_fd = Comm::setup(port);
+    if (server_fd < 0) {
+        SD_LOG(LOG_ERR, "control: socket cannot be created.");
+        return;
+    }
+
+    struct timeval tv;
+    tv.tv_sec = 60;  // in seconds
+    tv.tv_usec = 0;
+
+    struct sockaddr_in client;
+
+    while (1) {
+        socklen_t client_len = sizeof(client);
+        int sock = accept(server_fd, (struct sockaddr*) &client, &client_len);
+        if (sock == -1) {
+            SD_LOG(LOG_ERR, "accept failed: %s, sleeping for 5 seconds", strerror(errno));
+            sleep(5);
+            continue;
+        }
+        char str[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &client.sin_addr, str, INET_ADDRSTRLEN);
+        SD_LOG(LOG_DEBUG, "accept socket %d: %s:%d", sock, str, client.sin_port);
+
+        if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv)) {
+            SD_LOG(LOG_ERR, "failed to set timeout on socket %d: %s", sock, strerror(errno));
+        }
+
+        std::thread conn(&Server::runProcedure, this, sock);
+        conn.detach();
+    }
+}
+
+void Server::runProcedure(int peer_sock)
+{
+    uint8_t buf[MESSAGE_BUF_SIZE];
+    int timeOutCount = 0;
+    int expected = 0;
+    int received = 0;
+    char *ptr = (char *)buf;
+    
+    while (true) {
+        int bytesRead = recv(peer_sock, ptr, MESSAGE_BUF_SIZE, 0);
+        if (bytesRead < 0) {
+            if (errno == EAGAIN) {
+                SD_LOG(LOG_ERR, "socket timeout %d %s", errno, strerror(errno));
+                timeOutCount++;
+                if (timeOutCount < MAX_TIME_OUT)
+                    continue;
+                else
+                    break;
+            }
+            else
+                break;
+        }
+        else if (bytesRead == 0) {
+            break;
+        }
+        if (expected == 0) {
+            uint32_t hb = buf[0];
+            uint32_t lb = buf[1];
+            expected = hb << 8 | lb;
+        }
+        received += bytesRead;
+        if (received < expected) {
+            ptr += bytesRead;
+            continue;
+        }
+
+        Message *message = decodeMessage(buf, expected);
+        if (message == NULL) {
+            break;
+        }
+        SD_LOG(LOG_DEBUG, "received.....%s", message->toString().c_str());
+        
+        Message *response = handleMessage(message);
+        delete message;  // message handled, no longer needed
+
+        if (response != NULL) {
+            sendMessage(peer_sock, response);
+            delete response;  // response sent, no longer needed
+        }
+        else
+            break;
+
+        received = 0;
+        expected = 0;
+        ptr = (char *) buf;
+    }
+    SD_LOG(LOG_DEBUG, "close socket %d", peer_sock);
+    close(peer_sock);
+}
+
+time_t Server::getTimestamp()
+{
+    long            ms; // Milliseconds
+    time_t          s;  // Seconds
+    struct timespec spec;
+
+    clock_gettime(CLOCK_REALTIME, &spec);
+
+    s  = spec.tv_sec;
+    ms = round(spec.tv_nsec / 1.0e6); // Convert nanoseconds to milliseconds
+    if (ms > 999) {
+        s++;
+        ms = 0;
+    }
+    return s;
+}
+
+void Server::setTimestamp(Message *message)
+{
+    message->setTimestamp(getTimestamp());
+}
+
+Seec *Server::findSeec(string deviceID)
+{
+    Device *device = Device::findDevice(deviceID);
+    if (device == NULL) {
+        SD_LOG(LOG_ERR, "unknown device %s", deviceID.c_str());
+        return NULL;
+    }
+
+    return device->getSeec();
+}
+
+void Server::readWkdIbeMatertials(string keys)
+{
+    ifstream fin(keys);
+
+    string line, item, value;
+    // int size = 0;
+    while (getline(fin, line)) {
+        Utils::trim(line);
+        if (line.size() == 0 || line[0] == '#')
+            continue;
+
+        stringstream s(line);
+        getline(s, item, ' ');
+        getline(s, value, ' ');
+
+        if (item.compare(NV_PARAMS_SIZE) == 0) {
+            // size = stoi(value);
+        }
+        else  if (item.compare(NV_PARAMS) == 0) {
+            Utils::readHex(Subscribe::getParams(), value, value.size() / 2);
+        }
+        else  if (item.compare(NV_URIPATH_SIZE) == 0) {
+            // size = stoi(value);
+        }
+        else  if (item.compare(NV_URIPATH) == 0) {
+            Utils::readHex(Subscribe::getUripath(), value, value.size() / 2);
+        }
+        else  if (item.compare(NV_TIMEPATH_SIZE) == 0) {
+            // size = stoi(value);
+        }
+        else  if (item.compare(NV_TIMEPATH) == 0) {
+            Utils::readHex(Subscribe::getTimepath(), value, value.size() / 2);
+        }
+        else  if (item.compare(NV_ENCRYPTKEY_SIZE) == 0) {
+            // size = stoi(value);
+        }
+        else  if (item.compare(NV_ENCRYPTKEY) == 0) {
+            Utils::readHex(Subscribe::getEncryptKey(), value, value.size() / 2);
+        }
+        else if (item.compare(NV_SIGNKEY_SIZE) == 0 || item.compare(NV_SIGNKEY) == 0) {
+             SD_LOG(LOG_WARNING, "NV item ignored: %s", item.c_str());
+        }
+        else {
+            SD_LOG(LOG_ERR, "unrecognized nv item: %s", item);
+        }
+    }
+//    cout << Subscribe::getParams().size() << " " << Subscribe::getTimepath().size() << " "
+//            << Subscribe::getEncryptKey().size() << " " << Subscribe::getUripath().size() << endl;
+}
+

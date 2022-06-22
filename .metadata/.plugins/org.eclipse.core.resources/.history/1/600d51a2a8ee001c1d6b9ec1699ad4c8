@@ -1,0 +1,62 @@
+﻿/*
+ * Copyright (c) 2021 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * Oct 5, 2021
+ */
+
+#pragma once
+
+#include "StateMachine.hpp"
+#include "CryptoServer.hpp"
+#include "Seec.hpp"
+#include "Device.hpp"
+#include "CommandLine.hpp"
+
+using namespace std;
+
+class Server : public StateMachine
+{
+protected:
+    CryptoServer cryptoServer;
+
+    void runProcedure(int sock);
+
+    virtual void setTimestamp(Message *message);
+    virtual time_t getTimestamp();
+
+    virtual Message *decodeMessage(uint8_t dataArray[], uint32_t len) {
+        (void) dataArray;
+        (void) len;
+
+        return NULL;
+    }
+
+    virtual Message *handleMessage(Message *message) {
+        (void) message;
+
+        return NULL;
+    }
+   
+public:
+    Server(Config &config, Board *board, CommandLine &cli)
+        : StateMachine(config, board),
+          cryptoServer(cli) {
+        Device::open(cli.getDatabase());
+    }
+
+    virtual ~Server() {}
+
+    Seec *findSeec(string deviceID);
+
+    const CryptoServer& getCryptoServer() const {
+        return cryptoServer;
+    }
+
+    void run();
+    void importDevices(string file);
+    void readWkdIbeMatertials(string keys);
+};

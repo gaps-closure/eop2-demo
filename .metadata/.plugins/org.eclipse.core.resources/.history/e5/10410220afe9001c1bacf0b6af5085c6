@@ -1,0 +1,573 @@
+﻿/*
+ * Copyright (c) 2022 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * June 10, 2022
+ */
+#include <sys/stat.h>
+#include <iostream>
+#include <filesystem>
+
+#include "nv.h"
+#include "Config.hpp"
+#include "Device.hpp"
+#include "Server.hpp"
+#include "BoardServer.hpp"
+#include "ProvisionCL.hpp"
+#include "Utils.hpp"
+#include "Provision.hpp"
+
+#include "jedi-protocol/pattern.hpp"
+#include "jedi-protocol/timepath.hpp"
+#include "jedi-protocol/uripath.hpp"
+
+// TODO
+const int PARAMS_LENGTH = 11;
+
+G1 params_harr[PARAMS_LENGTH];
+Params params;
+
+FreeSlot b1arr[PARAMS_LENGTH];
+SecretKey encryptSK;
+
+FreeSlot b2arr[PARAMS_LENGTH];
+SecretKey signSK;
+
+MasterKey msk;
+
+int VAR_PARAMS_LENGTH = -1;
+int VAR_ENCRYPT_SECRET_KEY_LENGTH = -1;
+int VAR_SIGN_SECRET_KEY_LENGTH = -1;
+
+using namespace embedded_pairing::wkdibe;
+
+static void putKey(Vector &vec)
+{
+    vec.reset();
+    vec.resize(32);
+    Crypto::getRandomBytes(vec.at(0), 32);
+    vec.inc(32);
+}
+
+void random_bytes (void *buffer, size_t len)
+{
+    Crypto::getRandomBytes(buffer, len);
+}
+
+int updateLen(int oldValue, int newValue)
+{
+    if (oldValue != -1 && oldValue != newValue) {
+        SD_LOG(LOG_ERR, "inconsistent length: %d v.s. %d", oldValue, newValue);
+    }
+    return newValue;
+ }
+
+ void segmented(ofstream &fs, const char *item, const char* charPtr, const size_t size)
+ {
+     string line = Log::toHexNoLimit((char *)charPtr, size);
+
+     // fs << item << " " << line << endl;
+
+     const int LINE_LEN = 200;
+     int remain = line.size();
+     int curr = 0;
+     while (remain > LINE_LEN) {
+         fs << item << " " << line.substr(curr, LINE_LEN) << endl;
+         curr += LINE_LEN;
+         remain -= LINE_LEN;
+     }
+     if (remain > 0)
+         fs << item << " " << line.substr(curr, remain) << endl;
+     fs << endl;
+ }
+
+ void writeWkd(ofstream &fs, const int paramsLength, const Params& params,
+         const SecretKey& encryptSecretKey, const SecretKey& signSecretKey, const URIPath& uriPath,
+         const TimePath& timePath)
+ {
+     // Params
+     int paramsMarshalledLen = params.getMarshalledLength<true>();
+     vector<uint8_t> paramsBuff(paramsMarshalledLen);
+     params.marshal<true>(&paramsBuff[0]);
+     fs << NV_PARAMS_SIZE << " " << paramsMarshalledLen<< endl;
+     segmented(fs, NV_PARAMS, (char*) &paramsBuff[0], paramsMarshalledLen);
+
+     // Encrypt Secret Key Length
+     VAR_ENCRYPT_SECRET_KEY_LENGTH = updateLen(VAR_ENCRYPT_SECRET_KEY_LENGTH, encryptSecretKey.l);
+
+     // Encrypt Secret Key
+     int encryptSecretKeyMarshalledLen = encryptSecretKey.getMarshalledLength<true>();
+     vector<uint8_t> encrypt_key_buff(encryptSecretKeyMarshalledLen);
+     encryptSecretKey.marshal<true>(&(encrypt_key_buff[0]));
+     fs << NV_ENCRYPTKEY_SIZE << " " << encryptSecretKeyMarshalledLen << endl;
+     segmented(fs, NV_ENCRYPTKEY, (char*) &encrypt_key_buff[0], encryptSecretKeyMarshalledLen);
+
+     // Sign Secret Key Length
+     VAR_SIGN_SECRET_KEY_LENGTH = updateLen(VAR_SIGN_SECRET_KEY_LENGTH, signSecretKey.l);
+
+     // Sign Secret Key
+     int signSecretKeyMarshalledLen = signSecretKey.getMarshalledLength<true>();
+     vector<uint8_t> sign_key_buff(signSecretKeyMarshalledLen);
+     signSecretKey.marshal<true>(&(sign_key_buff[0]));
+     fs << NV_SIGNKEY_SIZE << " " << signSecretKeyMarshalledLen << endl;
+     segmented(fs, NV_SIGNKEY, (char*) &sign_key_buff[0], signSecretKeyMarshalledLen);
+
+     // URIPath
+     std::vector<uint8_t> uriBytes = uriPath.URIToBytes();
+     fs << NV_URIPATH_SIZE << " " << uriBytes.size() << endl;
+     segmented(fs, NV_URIPATH, (char*) &uriBytes[0], uriBytes.size());
+
+     // TimePath
+     std::vector<uint8_t> timeBytes = timePath.TimeToBytes();
+     fs << NV_TIMEPATH_SIZE << " " << timeBytes.size() << endl;
+     segmented(fs, NV_TIMEPATH, (char*) &timeBytes[0], timeBytes.size());
+ }
+
+void genWkd(ofstream &fs, const string &deviceID, const string &uri)
+{
+    // URIPath with Wildcard for DeviceID Slot after URI
+    // URI becomes "a/b/c/d/+" (* is removed and indicates Wildcard URI that is not fully specified)
+    string uriString = uri + std::string("/") + deviceID + std::string("/+/*");
+    URIPath uriPath = URIPath::parseURI(uriString);
+
+    // TimePath
+    time_t rawtime;
+    time(&rawtime);
+    struct tm timeinfo = *(gmtime(&rawtime));
+    // Set timeString to Wildcard for the current year (e.g. "2021/+/+/+", any hour of any day of any month in 2021)
+    // tm_year contains years since 1900
+    string timeString = to_string(timeinfo.tm_year + 1900);
+    timeString.append("/+/+/+");
+    // Time needs to be a Wildcard for all slots to do performance measurements (to allow for 1000 iterations, spanning multiple years)
+    // string timeString = "+/+/+/+";
+    TimePath timePath;
+    if (!TimePath::parseTime(timePath, timeString)) {
+        // Error
+        return;
+    }
+
+    printf("URIPath: %s, TimePath: %s\n", uriPath.toString().c_str(),
+            timePath.toString().c_str());
+
+    Pattern p;
+    Pattern::encodePattern(uriPath, timePath, p);
+    AttributeList al = p.toAttrs();
+
+    // Encryption Secret Key
+    keygen(encryptSK, params, msk, al, random_bytes);
+
+    // TODO - Signing Optimization - Add nondelegable_keygen for signing
+    // Signing Secret Key
+    nondelegable_keygen(signSK, params, msk, al);
+
+    // Write Params Length, Params, Secret Key, URIPath, and TimePath to files
+    writeWkd(fs, PARAMS_LENGTH, params, encryptSK, signSK, uriPath, timePath);
+}
+
+void wkdInit()
+{
+    params.h = params_harr;
+    encryptSK.b = b1arr;
+    signSK.b = b2arr;
+
+    setup(params, msk, PARAMS_LENGTH, true, random_bytes);
+}
+
+void Provision::genDevice(Device &device)
+{
+    std::ofstream file(cli.getOutputDir() + "/" + device.getId());
+
+    file << NV_ID << " " << device.getId() << endl;
+    
+    string prot = TO_PROTOCOL(device.getRelyingPartyEndpoint().getProtocol());
+    std::transform(prot.begin(), prot.end(), prot.begin(), [](unsigned char c){ return std::tolower(c); });
+    file << NV_PROTOCOL << " " << prot << endl;
+    file << NV_ADDRESS << " " << device.getRelyingPartyEndpoint().getAddress() << endl;
+    file << NV_PORT << " " << device.getRelyingPartyEndpoint().getPort() << endl;
+
+    string dist = TO_KEY_ENC_TYPE(config.getKeyDistMethod());
+    std::transform(dist.begin(), dist.end(), dist.begin(), [](unsigned char c){ return std::tolower(c); });
+    file << NV_KEY_DIST << " " << dist << endl;
+
+    file << NV_REPORT_INTVL << " " << config.getReportInterval() << endl;
+    file << NV_KEY_CHG_INTVL << " " << config.getKeyChangeInterval() << endl;
+    file << NV_ENCRYPT << " " << (config.isEncryptionEnabled() ? "true" : "false") << endl;
+    file << NV_AUTHENTICATION << " " << (config.isAuthenticationEnabled() ? "true" : "false") << endl;
+    file << NV_ATTEST << " " << (config.isAttestationEnabled() ? "true" : "false") << endl;
+    file << NV_SEEC << " " << (config.isSeecEnabled() ? "true" : "false") << endl;
+    file << NV_KEY_ENCRYPTION << " " << (config.isKeyEncryptionEnabled() ? "true" : "false") << endl;
+    file << NV_SIGNING << " " << (config.isSigningEnabled() ? "true" : "false") << endl;
+    file << NV_KEY_CHANGE << " " << (config.isKeyChangeEnabled() ? "true" : "false") << endl;
+    file << NV_PASSPORT_PERIOD << " " << config.getPassportPeriod() << endl;
+    file << NV_PAYLOAD_SIZE << " " << config.getPayloadSize() << endl;
+    file << NV_PASS_THRU << " " << (config.isPassThru() ? "true" : "false") << endl;
+    file << NV_NUM_CYCLES << " " << config.getNumCycles() << endl;
+    file << NV_ITERATIONS << " " << config.getIterations() << endl;
+
+    file << NV_AES_KEY << " " << Log::toHex(device.getAttestationKey()) << endl;
+    file << NV_RA_KEY << " " << Log::toHex(device.getEncryptionKey()) << endl;
+    file << NV_AUTH_KEY << " " << Log::toHex(device.getAuthKey()) << endl;
+
+    file << NV_ATTEST_SQN << " 0" << endl;
+    file << endl;
+
+    genWkd(file, device.getId(), cli.getUri());
+
+    file.flush();
+    file.close();
+}
+
+void Provision::genDeviceJson()
+{
+    string infile = cli.getInputFile();
+    string outfile = cli.getOutputDir() + "/devices.json";
+
+    struct stat buffer;
+    if (stat(infile.c_str(), &buffer) < 0) {
+        SD_LOG(LOG_ERR, "file does not exist: %s", infile.c_str());
+        return;
+    }
+
+    std::ifstream jStream(infile);
+    json js;
+    jStream >> js;
+
+    auto jsonObjects = json::array();
+
+    for (auto &el : js.items()) {
+        Device device(el.value(), config);
+
+        int count = device.getSqn();
+        string idPrefix = device.getId();
+        for (int i = 0; i < count; i++) {
+            json dev_js;
+
+            char seq[5];
+            sprintf(seq, "%03d", i + 1);
+            string seqNum(seq);
+
+            string id = idPrefix + "-" + seqNum;
+            device.setId(id);
+
+            dev_js[COL_ID] = id;
+            dev_js[COL_FIRMWARE] = device.getFirmware();
+            dev_js[COL_FIRMWARE_SIZE] = device.getFirmwareSize();
+            dev_js[COL_OS_VERSION] = device.getOsVersion();
+
+            string prot = Log::toProtocol(device.getVerifierEndpoint().getProtocol());
+            std::transform(prot.begin(), prot.end(), prot.begin(),
+                    [](unsigned char c){ return std::tolower(c); });
+            dev_js[COL_VERIFIER_EP]["protocol"] = prot;
+            dev_js[COL_VERIFIER_EP]["address"] = device.getVerifierEndpoint().getAddress();
+            dev_js[COL_VERIFIER_EP]["port"] = device.getVerifierEndpoint().getPort();
+
+            prot = Log::toProtocol(device.getRelyingPartyEndpoint().getProtocol());
+            std::transform(prot.begin(), prot.end(), prot.begin(),
+                    [](unsigned char c){ return std::tolower(c); });
+            dev_js[COL_RELYINGPARTY_EP]["protocol"] = prot;
+            dev_js[COL_RELYINGPARTY_EP]["address"] = device.getRelyingPartyEndpoint().getAddress();
+            dev_js[COL_RELYINGPARTY_EP]["port"] = device.getRelyingPartyEndpoint().getPort();
+
+            putKey(device.getEncryptionKey());
+            dev_js[COL_ENCRYPTION_KEY] = Log::toHex(device.getEncryptionKey());
+
+            putKey(device.getAttestationKey());
+            dev_js[COL_ATTESTATION_KEY] = Log::toHex(device.getAttestationKey());
+
+            putKey(device.getAuthKey());
+            dev_js[COL_AUTH_KEY] = Log::toHex(device.getAuthKey());
+
+            putKey(device.getNonce());
+            dev_js[COL_NONCE] = Log::toHex(device.getNonce());
+
+            dev_js[COL_PASSPORT_EXPIRY] = 0;
+            dev_js[COL_LAST_ATTESTATION] = 0;
+            dev_js[COL_STATUS] = 0;
+            dev_js[COL_SQN] = 0;
+
+            jsonObjects.push_back(dev_js);
+
+            SD_LOG(LOG_DEBUG, "device %s", id.c_str());
+            genDevice(device);
+        }
+    }
+    std::ofstream devicefile(outfile);
+    devicefile << jsonObjects.dump(2);
+    devicefile.flush();
+
+    SD_LOG(LOG_INFO, "output to %s", outfile.c_str());
+}
+
+void Provision::genDeviceCsv()
+{
+    string infile = cli.getInputFile();
+    string outfile = cli.getOutputDir() + "/devices.csv";
+
+    struct stat buffer;
+    if (stat(infile.c_str(), &buffer) < 0) {
+        SD_LOG(LOG_ERR, "file does not exist: %s", infile.c_str());
+        return;
+    }
+
+    std::ifstream jStream(infile);
+    json js;
+    jStream >> js;
+
+    ofstream outstream(outfile);
+    if (!outstream.is_open()) {
+        SD_LOG(LOG_ERR, "cannot open file: %s", outfile.c_str());
+        return;
+    }
+    outstream << "#id,firmware,firmwareSize,osVersion,verifierEndpoint,relyingPartyEndpoint,"
+                 "encryptionKey,attestationKey,authKey,nonce,passportDate,lastAttestation,status,sqn\n";
+
+    for (auto &el : js.items()) {
+        Device device(el.value(), config);
+
+        int count = device.getSqn();
+        string idPrefix = device.getId();
+        for (int i = 0; i < count; i++) {
+            string line;
+            char seq[5];
+            sprintf(seq, "%03d", i + 1);
+            string seqNum(seq);
+
+            string id = idPrefix + "-" + seqNum;
+            device.setId(id);
+
+            line += id + ", ";
+            line += device.getFirmware() + ", ";
+            line += to_string(device.getFirmwareSize()) + ", ";
+            line += device.getOsVersion() + ", ";
+
+            string prot = Log::toProtocol(device.getVerifierEndpoint().getProtocol());
+            line += prot + ":" + device.getVerifierEndpoint().getAddress() + ":" +
+                    to_string(device.getVerifierEndpoint().getPort()) + ", ";
+
+            prot = Log::toProtocol(device.getRelyingPartyEndpoint().getProtocol());
+            line += prot + ":" + device.getRelyingPartyEndpoint().getAddress() + ":" +
+                    to_string(device.getRelyingPartyEndpoint().getPort()) + ", ";
+            
+            putKey(device.getEncryptionKey());
+            putKey(device.getAttestationKey());
+            putKey(device.getAuthKey());
+            putKey(device.getNonce());
+
+            line += "'" + Log::toHex(device.getEncryptionKey()) + ", ";
+            line += "'" + Log::toHex(device.getAttestationKey()) + ", ";
+            line += "'" + Log::toHex(device.getAuthKey())+ ", ";
+            line += "'" + Log::toHex(device.getNonce()) + ", ";
+
+            line += "0, ";  // passport expir
+            line += "0, ";  // last attestation
+            line += "0, ";  // statue
+            line += "0";    // sqn
+
+            outstream << line << endl;
+            SD_LOG(LOG_DEBUG, "device %s", id.c_str());
+            genDevice(device);
+        }
+    }
+    outstream.flush();
+    outstream.close();
+
+    SD_LOG(LOG_INFO, "output to %s", outfile.c_str());
+}
+
+void Provision::genDeviceDB()
+{
+    string infile = cli.getInputFile();
+
+    struct stat buffer;
+    if (stat(infile.c_str(), &buffer) < 0) {
+        SD_LOG(LOG_ERR, "file does not exist: %s", infile.c_str());
+        return;
+    }
+    Device::open(config);
+
+    std::ifstream jStream(infile);
+    json js;
+    jStream >> js;
+
+    auto jsonObjects = json::array();
+
+    for (auto &el : js.items()) {
+        Device device(el.value(), config);
+
+        string prefix = device.getId();
+        int count = device.getSqn();
+        for (int i = 0; i < count; i++) {
+            json dev_js;
+
+            char seq[5];
+            sprintf(seq, "%03d", i + 1);
+            string seqNum(seq);
+
+            device.setId(prefix+ "-" + seqNum);
+            putKey(device.getEncryptionKey());
+            putKey(device.getAttestationKey());
+            putKey(device.getAuthKey());
+            putKey(device.getNonce());
+
+            device.setSqn(0);
+
+            Device::insertDevice(&device);
+            genDevice(device);
+        }
+    }
+
+    SD_LOG(LOG_INFO, "device generated to database %s", config.getDatabase().c_str());
+}
+
+void Provision::importJson()
+{
+    string filename = cli.getInputFile();
+
+    struct stat buffer;
+    if (stat(filename.c_str(), &buffer) < 0) {
+        SD_LOG(LOG_ERR, "file does not exist: %s", filename.c_str());
+        return;
+    }
+
+    std::ifstream jStream(filename);
+    json js;
+    jStream >> js;
+
+    for (auto &el : js.items()) {
+        //        string key = el.key();
+        //        nlohmann::basic_json<> value = el.value();
+        //
+        //        if (!key.compare("devices")) {
+        //            for (auto &el : value.items()) {
+        Device device(el.value(), config);
+
+        Seec *seec = device.getSeec();
+        Crypto *crypto = seec->getCrypto();
+        if (crypto == NULL) {
+            SD_LOG(LOG_ERR, "null crypto");
+            continue;
+        }
+        Vector& attestKey = device.getAttestationKey();
+        crypto->changeKey(KEY_ATTESTATION, attestKey.at(0), attestKey.size());
+
+        Vector& encKey = device.getEncryptionKey();
+        crypto->changeKey(KEY_ENCRYPTION, encKey.at(0), encKey.size());
+
+        Vector& authKey = device.getAuthKey();
+        crypto->changeKey(KEY_AUTH, authKey.at(0), authKey.size());
+
+        Device::insertDevice(&device);
+    }
+    SD_LOG(LOG_INFO, "device imported to database %s", config.getDatabase().c_str());
+
+//    std::cout << js.dump(2) << endl;
+}
+
+void Provision::importCsv()
+{
+    string csv = cli.getInputFile();
+
+    ifstream fin(csv);
+
+    string line, word, temp;
+    while (getline(fin, line)) {
+        Utils::trim(line);
+        if (line.size() == 0 || line[0] == '#')
+            continue;
+
+        stringstream s(line);
+        int idx = 0;
+        string dev;
+        while (getline(s, word, ',')) {
+            if (idx != 0)
+                dev += ", ";
+
+            Utils::trim(word);
+            if (word.size() == 0) {
+                dev += "NULL";
+            }
+            else if (cols[idx].type == COL_TYPE_TEXT) {
+                dev += "'" + word + "'";
+            }
+            else if (cols[idx].type == COL_TYPE_BLOB) {
+                if (word[0] != '\'') {
+                    SD_LOG(LOG_WARNING, "%s must start with a single quote: %s", cols[idx], cols[0].name);
+                }
+                dev += "X'" + word.substr(1) + "'";   // skip the '
+            }
+            else {
+                dev += word;
+            }
+            idx++;
+        }
+        Device::insertDevice(dev);
+    }
+    SD_LOG(LOG_INFO, "device imported to database %s", config.getDatabase().c_str());
+}
+
+void Provision::import()
+{
+    Device::open(config);
+
+    switch (cli.getInputFormat()) {
+    case JSON:
+        importJson();
+        break;
+    case CSV:
+        importCsv();
+        break;
+    default:
+        break;
+    }
+}
+
+void Provision::gen()
+{
+    wkdInit();
+
+    string dir = cli.getOutputDir();
+    if (!filesystem::exists(dir)) {
+        if (!filesystem::create_directories(dir)) {
+            SD_LOG(LOG_ERR, "could not create directory: %s!", dir.c_str());
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    switch (cli.getOutputFormat()) {
+    case JSON:
+        genDeviceJson();
+        break;
+    case CSV:
+        genDeviceCsv();
+        break;
+    case DB:
+        genDeviceDB();
+        break;
+    default:
+        break;
+    }
+
+    ofstream incFile(cli.getOutputDir() + "/wkd_lens.h");
+    incFile << "#include PARAMS_LENGTH " << PARAMS_LENGTH << endl;
+    incFile << "#include ENCRYPT_SECRET_KEY_LENGTH " << encryptSK.l << endl;
+    incFile << "#include SIGN_SECRET_KEY_LENGTH " << signSK.l << endl;
+    incFile.flush();
+    incFile.close();
+}
+
+void Provision::run()
+{
+    switch (cli.getMode()) {
+    case GEN:
+        gen();
+        break;
+    case IMPORT:
+        import();
+        break;
+    default:
+        break;
+    }
+}

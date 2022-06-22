@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head>
+<META HTTP-EQUIV="Expires" CONTENT="Mon, Jan 1 2001 12:00:00 GMT">
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<META HTTP-EQUIV="Cache-Control" CONTENT="no-cache">
+<SCRIPT TYPE="text/javascript" LANGUAGE="JavaScript" SRC="elqDLst.js"></SCRIPT>
+<SCRIPT TYPE="text/javascript" LANGUAGE="JavaScript" SRC="elqCfg.js"></SCRIPT>
+<SCRIPT TYPE="text/javascript" LANGUAGE="JavaScript"><!--//
+// Copyright Eloqua Corporation.
+function elqGo(strURL) {
+	if (document.images) { location.replace(strURL); }
+	else { location.href = strURL; }}
+
+function elqCUrl(strUrl) {
+	if (typeof elqIC != 'undefined') {
+		if (elqIC) {
+			var elqFound = false;
+			if (typeof elqDL != 'undefined'){			
+				if (typeof elqReplace != 'undefined'){
+					var elqDLtp =  elqReplace(elqDL, 'http://', '');
+					elqDLtp = elqReplace(elqDLtp, 'https://', '');
+					var elqDA = elqDLtp.split('#');
+					var elqStrUrlCpy = elqReplace(strUrl, 'http://', '');
+					elqStrUrlCpy = elqReplace(elqStrUrlCpy, 'https://', '');
+					for(var x=0;x<elqDA.length;x++) {
+						if (elqDA[x] != ''){
+							if (elqStrUrlCpy.indexOf(elqDA[x]) == 0){
+								elqFound = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+			if (elqFound){
+				elqGo(strUrl);
+			}else{
+				if (typeof elqDURL != 'undefined'){
+					elqGo(elqDURL);
+				}else{
+					elqGo('elqNoRedir.htm');
+				}
+			}
+		}else{
+			elqGo(strUrl);
+		}
+	}else{
+		elqGo(strUrl);
+	}
+}
+
+function elqSafeRedir() {
+	if (typeof elqQString != 'undefined') {	elqCUrl(elqQString('ref','/',2)); }
+	else { elqCUrl('/'); }}
+window.onerror = elqSafeRedir;
+var elqDt = new Date();
+var elqMs = elqDt.getMilliseconds();
+var elqRef2 = '';
+if ((typeof elqCurE != 'undefined')&&(typeof elqSiteID != 'undefined')&&(typeof elqQString != 'undefined')){
+if (document.referrer) { elqRef2 = document.referrer; }
+if ((typeof elqRef2 == 'undefined') || (elqRef2 == 'undefined') || (elqRef2 == '')) { elqRef2 = 'elqNone'; }
+else { elqRef2 = elqReplace(elqReplace(elqRef2,'&','%26'),'#','%23'); }
+document.write('<SCR' + 'IPT TYPE="text/javascript" LANGUAGE="JavaScript" SRC="' + elqCurE + '?pps=10&siteid=' + elqSiteID + '&elq=' + elqQString('elq','',0) + '&ref=' + elqQString('ref','',0) + '&ref2=' + elqRef2 + '&ms=' + elqMs + '"><\/SCR' + 'IPT>'); }
+//--></SCRIPT>
+<style>
+.warning {
+	background-color: #f4dcdc;
+	border: 1px solid #c51616;
+	border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	color: #c51616;
+	font-family: "Liberation Sans", "Trebuchet MS", "Bitstream Vera Sans", helvetica, verdana, arial, sans-serif;
+	font-size: small;
+	font-weight: bold;
+	text-align: center;
+	margin: 20px auto;
+	padding: 10px 30px;
+	max-width: 800px;
+}
+</style>
+</head>
+<body height="100%" width="100%">
+	<div class="warning">
+		<p>You are seeing this page because you have attempted to access a section of our site that requires JavaScript to be enabled. </p>
+		<p>Please enable JavaScript and try again.</p>
+		<p>You can hit the "Back" button on your browser to be returned to the previous page.</p>
+	</div>
+</body>
+</html>

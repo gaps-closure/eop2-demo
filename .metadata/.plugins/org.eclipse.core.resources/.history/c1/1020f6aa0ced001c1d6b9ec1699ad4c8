@@ -1,0 +1,74 @@
+key_dist jedi
+report_interval 5
+key_change_interval 30
+enc_enabled true
+auth_enabled true
+attest_enabled true
+seec_enabled true
+key_enc_enabled true
+sign_enabled true
+key_change_enabled true
+passport_period 86400
+payload_size 48
+pass_thru_enabled true
+num_cycles 5
+iterations 1111
+
+download false
+log_level 8
+
+verifier
+    id Verifier
+    incoming
+        protocol tcp
+        address 127.0.0.1
+        port 8100
+    
+    outgoing
+        protocol tcp
+        address 127.0.0.1
+        port 8000
+    
+    aService
+        protocol tcp
+        address 127.0.0.1
+        port 8102
+    
+    outgoing2
+        protocol tcp
+        address 127.0.0.1
+        port 8101
+end
+
+firewall
+    id Firewall
+    incoming
+        protocol tcp
+        address 127.0.0.1
+        port 8000
+    outgoing
+        protocol tcp
+        address 127.0.0.1
+        port 8001
+end
+
+appServer
+    id Application_Server
+    incoming 
+        protocol tcp
+        address 127.0.0.1
+        port 8001
+    outgoing
+        protocol tcp
+        address 127.0.0.1
+        port 8201
+end
+
+prover
+    id Ubuntu
+    outgoing 
+        protocol tcp
+        address 127.0.0.1
+        port 8000
+end
+

@@ -1,0 +1,382 @@
+﻿/*
+ * Copyright (c) 2022 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * June 10, 2022
+ */
+#include <sys/stat.h>
+#include <iostream>
+
+#include "Config.hpp"
+#include "Device.hpp"
+#include "Server.hpp"
+#include "BoardServer.hpp"
+#include "ProvisionCL.hpp"
+#include "Utils.hpp"
+#include "Provision.hpp"
+
+static string genKey()
+{
+    char key[32];
+
+    Crypto::getRandomBytes(key, 32);
+    return Log::toHex(key, 32);
+}
+
+static void putKey(Vector &vec)
+{
+    vec.reset();
+    vec.resize(32);
+    Crypto::getRandomBytes(vec.at(0), 32);
+    vec.inc(32);
+}
+
+void Provision::genDevice(Device *device)
+{
+    std::ofstream deviceFile("/tmp/" + device->getId());
+
+    devicefile << NV_ID << device->getId( << endl;
+
+#define                        "id"
+#define NV_PROTOCOL                 "protocol"
+#define NV_ADDRESS                  "address"
+#define NV_PORT                     "port"
+#define NV_KEY_DIST                 "key_dist"
+#define NV_KEY_CHG_INTVL            "key_change_interval"
+#define NV_ENCRYPT                  "encryption"
+#define NV_REPORT_INTVL             "report_interval"
+#define NV_ATTEST                   "attestation"
+#define NV_SEEC                     "seec"
+#define NV_KEY_ENCRYPTION           "key_encryption"
+#define NV_SIGNING                  "signing"
+#define NV_KEY_CHANGE               "key_change"
+#define NV_PASSPORT_PERIOD          "passport_period"
+#define NV_PAYLOAD_SIZE             "payload_size"
+#define NV_PASS_THRU                "pass_thru"
+#define NV_NUM_CYCLES               "num_cycles"
+#define NV_ITERATIONS               "iterations"
+#define NV_AUTHENTICATION           "authentication"
+#define NV_AES_KEY                  "aes_key"
+#define NV_RA_KEY                   "ra_key"
+#define NV_ATTEST_SQN               "attestation_sqn"
+#define NV_PARAMS_PUB_SIZE          "params_pub_size"   // actual size of the params data
+#define NV_PARAMS_PUB               "params_pub"
+#define NV_URIPATH_PUB_SIZE         "uripath_pub_size"
+#define NV_URIPATH_PUB              "uripath_pub"
+#define NV_TIMEPATH_PUB_SIZE        "timepath_pub_size"
+#define NV_TIMEPATH_PUB             "timepath_pub"
+#define NV_SIGNKEY_PUB_SIZE         "signkey_pub_size"
+#define NV_SIGNKEY_PUB              "signkey_pub"
+#define NV_AUTH_KEY                 "auth_key"
+
+void Provision::genDeviceJson()
+{
+    string infile = cli.getInputFile();
+    string outfile = cli.getOutputFile();
+
+    struct stat buffer;
+    if (stat(infile.c_str(), &buffer) < 0) {
+        SD_LOG(LOG_ERR, "file does not exist: %s", infile.c_str());
+        return;
+    }
+
+    std::ifstream jStream(infile);
+    json js;
+    jStream >> js;
+
+    auto jsonObjects = json::array();
+
+    for (auto &el : js.items()) {
+        Device *device = new Device(el.value(), config);
+
+        int count = device->getSqn();
+        for (int i = 0; i < count; i++) {
+            json dev_js;
+
+            char seq[5];
+            sprintf(seq, "%03d", i + 1);
+            string seqNum(seq);
+            string id = device->getId() + "-" + seqNum;
+
+            dev_js[COL_ID] = id;
+            dev_js[COL_FIRMWARE] = device->getFirmware();
+            dev_js[COL_FIRMWARE_SIZE] = device->getFirmwareSize();
+            dev_js[COL_OS_VERSION] = device->getOsVersion();
+
+            string prot = Log::toProtocol(device->getVerifierEndpoint().getProtocol());
+            std::transform(prot.begin(), prot.end(), prot.begin(),
+                    [](unsigned char c){ return std::tolower(c); });
+            dev_js[COL_VERIFIER_EP]["protocol"] = prot;
+            dev_js[COL_VERIFIER_EP]["address"] = device->getVerifierEndpoint().getAddress();
+            dev_js[COL_VERIFIER_EP]["port"] = device->getVerifierEndpoint().getPort();
+
+            prot = Log::toProtocol(device->getRelyingPartyEndpoint().getProtocol());
+            std::transform(prot.begin(), prot.end(), prot.begin(),
+                    [](unsigned char c){ return std::tolower(c); });
+            dev_js[COL_RELYINGPARTY_EP]["protocol"] = prot;
+            dev_js[COL_RELYINGPARTY_EP]["address"] = device->getRelyingPartyEndpoint().getAddress();
+            dev_js[COL_RELYINGPARTY_EP]["port"] = device->getRelyingPartyEndpoint().getPort();
+
+            dev_js[COL_ENCRYPTION_KEY] = genKey();
+            dev_js[COL_ATTESTATION_KEY] = genKey();
+            dev_js[COL_AUTH_KEY] = genKey();
+            dev_js[COL_NONCE] = genKey();
+
+            dev_js[COL_PASSPORT_EXPIRY] = 0;
+            dev_js[COL_LAST_ATTESTATION] = 0;
+            dev_js[COL_STATUS] = 0;
+            dev_js[COL_SQN] = 0;
+
+            jsonObjects.push_back(dev_js);
+
+            SD_LOG(LOG_DEBUG, "device %s", id.c_str());
+        }
+    }
+    std::ofstream devicefile(outfile);
+    devicefile << jsonObjects.dump(2);
+    devicefile.flush();
+
+    SD_LOG(LOG_INFO, "output to %s", outfile.c_str());
+}
+
+void Provision::genDeviceCsv()
+{
+    string infile = cli.getInputFile();
+    string outfile = cli.getOutputFile();
+
+    struct stat buffer;
+    if (stat(infile.c_str(), &buffer) < 0) {
+        SD_LOG(LOG_ERR, "file does not exist: %s", infile.c_str());
+        return;
+    }
+
+    std::ifstream jStream(infile);
+    json js;
+    jStream >> js;
+
+
+    ofstream outstream(outfile);
+    if (!outstream.is_open()) {
+        SD_LOG(LOG_ERR, "cannot open file: %s", outfile.c_str());
+        return;
+    }
+    outstream << "#id,firmware,firmwareSize,osVersion,verifierEndpoint,relyingPartyEndpoint,"
+                 "encryptionKey,attestationKey,authKey,nonce,passportDate,lastAttestation,status,sqn\n";
+
+    for (auto &el : js.items()) {
+        Device *device = new Device(el.value(), config);
+
+        int count = device->getSqn();
+        for (int i = 0; i < count; i++) {
+            string line;
+            char seq[5];
+            sprintf(seq, "%03d", i + 1);
+            string seqNum(seq);
+            string id = device->getId() + "-" + seqNum;
+
+            line += id + ", ";
+            line += device->getFirmware() + ", ";
+            line += to_string(device->getFirmwareSize()) + ", ";
+            line += device->getOsVersion() + ", ";
+
+            string prot = Log::toProtocol(device->getVerifierEndpoint().getProtocol());
+            line += prot + ":" + device->getVerifierEndpoint().getAddress() + ":" +
+                    to_string(device->getVerifierEndpoint().getPort()) + ", ";
+
+            prot = Log::toProtocol(device->getRelyingPartyEndpoint().getProtocol());
+            line += prot + ":" + device->getRelyingPartyEndpoint().getAddress() + ":" +
+                    to_string(device->getRelyingPartyEndpoint().getPort()) + ", ";
+            
+            line += "'" + genKey() + ", ";
+            line += "'" + genKey() + ", ";
+            line += "'" + genKey() + ", ";
+            line += "'" + genKey() + ", ";
+
+            line += "0, ";  // passport expir
+            line += "0, ";  // last attestation
+            line += "0, ";  // statue
+            line += "0";    // sqn
+
+            outstream << line << endl;
+            SD_LOG(LOG_DEBUG, "device %s", id.c_str());
+        }
+    }
+    outstream.flush();
+    outstream.close();
+
+    SD_LOG(LOG_INFO, "output to %s", outfile.c_str());
+}
+
+void Provision::genDeviceDB()
+{
+    string infile = cli.getInputFile();
+    string outfile = cli.getOutputFile();
+
+    struct stat buffer;
+    if (stat(infile.c_str(), &buffer) < 0) {
+        SD_LOG(LOG_ERR, "file does not exist: %s", infile.c_str());
+        return;
+    }
+    Device::open(config);
+
+    std::ifstream jStream(infile);
+    json js;
+    jStream >> js;
+
+    auto jsonObjects = json::array();
+
+    for (auto &el : js.items()) {
+        Device *device = new Device(el.value(), config);
+
+        string prefix = device->getId();
+        int count = device->getSqn();
+        for (int i = 0; i < count; i++) {
+            json dev_js;
+
+            char seq[5];
+            sprintf(seq, "%03d", i + 1);
+            string seqNum(seq);
+
+            device->setId(prefix+ "-" + seqNum);
+            putKey(device->getEncryptionKey());
+            putKey(device->getAttestationKey());
+            putKey(device->getAuthKey());
+            putKey(device->getNonce());
+
+            device->setSqn(0);
+
+            Device::insertDevice(device);
+        }
+        delete device;
+    }
+
+    SD_LOG(LOG_INFO, "device generated to database %s", config.getDatabase().c_str());
+}
+
+void Provision::importJson()
+{
+    string filename = cli.getInputFile();
+
+    struct stat buffer;
+    if (stat(filename.c_str(), &buffer) < 0) {
+        SD_LOG(LOG_ERR, "file does not exist: %s", filename.c_str());
+        return;
+    }
+
+    std::ifstream jStream(filename);
+    json js;
+    jStream >> js;
+
+    for (auto &el : js.items()) {
+        //        string key = el.key();
+        //        nlohmann::basic_json<> value = el.value();
+        //
+        //        if (!key.compare("devices")) {
+        //            for (auto &el : value.items()) {
+        Device *device = new Device(el.value(), config);
+
+        Seec *seec = device->getSeec();
+        Crypto *crypto = seec->getCrypto();
+        if (crypto == NULL) {
+            SD_LOG(LOG_ERR, "null crypto");
+            continue;
+        }
+        Vector& attestKey = device->getAttestationKey();
+        crypto->changeKey(KEY_ATTESTATION, attestKey.at(0), attestKey.size());
+
+        Vector& encKey = device->getEncryptionKey();
+        crypto->changeKey(KEY_ENCRYPTION, encKey.at(0), encKey.size());
+
+        Vector& authKey = device->getAuthKey();
+        crypto->changeKey(KEY_AUTH, authKey.at(0), authKey.size());
+
+        Device::insertDevice(device);
+    }
+    SD_LOG(LOG_INFO, "device imported to database %s", config.getDatabase().c_str());
+
+//    std::cout << js.dump(2) << endl;
+}
+
+void Provision::importCsv()
+{
+    string csv = cli.getInputFile();
+
+    ifstream fin(csv);
+
+    string line, word, temp;
+    while (getline(fin, line)) {
+        Utils::trim(line);
+        if (line.size() == 0 || line[0] == '#')
+            continue;
+
+        stringstream s(line);
+        int idx = 0;
+        string dev;
+        while (getline(s, word, ',')) {
+            if (idx != 0)
+                dev += ", ";
+
+            Utils::trim(word);
+            if (word.size() == 0) {
+                dev += "NULL";
+            }
+            else if (cols[idx].type == COL_TYPE_TEXT) {
+                dev += "'" + word + "'";
+            }
+            else if (cols[idx].type == COL_TYPE_BLOB) {
+                if (word[0] != '\'') {
+                    SD_LOG(LOG_WARNING, "%s must start with a single quote: %s", cols[idx], cols[0].name);
+                }
+                dev += "X'" + word.substr(1) + "'";   // skip the '
+            }
+            else {
+                dev += word;
+            }
+            idx++;
+        }
+        Device::insertDevice(dev);
+    }
+    SD_LOG(LOG_INFO, "device imported to database %s", config.getDatabase().c_str());
+}
+
+void Provision::run()
+{
+    string in;
+    string out;
+    switch (cli.getMode()) {
+    case GEN:
+        switch (cli.getOutputFormat()) {
+        case JSON:
+            genDeviceJson();
+            break;
+        case CSV:
+            genDeviceCsv();
+            break;
+        case DB:
+            genDeviceDB();
+            break;
+        default:
+            break;
+        }
+        break;
+    case IMPORT:
+        Device::open(config);
+
+        switch (cli.getInputFormat()) {
+        case JSON:
+            importJson();
+            break;
+        case CSV:
+            importCsv();
+            break;
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;android-callgraph/src-new.tgz&apos;" deleteContents="false" description="Delete resource &apos;android-callgraph/src-new.tgz&apos;" element1="/android-callgraph/src-new.tgz" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1654032415707"/>
+</session>

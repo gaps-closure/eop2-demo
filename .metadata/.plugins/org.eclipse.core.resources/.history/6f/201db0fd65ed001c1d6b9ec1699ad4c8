@@ -1,0 +1,378 @@
+﻿/*
+ * Copyright (c) 2021 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * Oct 5, 2021
+ */
+#include <sys/stat.h>
+#include <iostream>
+#include <sstream>
+
+#include "Device.hpp"
+#include "Enum.hpp"
+#include "Utils.hpp"
+#include "Log.hpp"
+
+using json = nlohmann::json;
+using namespace std;
+
+sqlite3 *Device::deviceDB;
+
+map<string, Device *> Device::devices;
+
+static Config tmpConfig;
+
+Col cols[] = {
+    {COL_ID,               COL_TYPE_TEXT},
+    {COL_FIRMWARE,         COL_TYPE_TEXT},
+    {COL_FIRMWARE_SIZE,    COL_TYPE_INT},
+    {COL_OS_VERSION,       COL_TYPE_TEXT},
+    {COL_VERIFIER_EP,      COL_TYPE_TEXT},
+    {COL_RELYINGPARTY_EP,  COL_TYPE_TEXT},
+    {COL_ENCRYPTION_KEY,   COL_TYPE_BLOB},
+    {COL_ATTESTATION_KEY,  COL_TYPE_BLOB},
+    {COL_AUTH_KEY,         COL_TYPE_BLOB},
+    {COL_NONCE,            COL_TYPE_BLOB},
+    {COL_PASSPORT_EXPIRY,  COL_TYPE_INT},
+    {COL_LAST_ATTESTATION, COL_TYPE_INT},
+    {COL_STATUS,           COL_TYPE_INT},
+    {COL_SQN,              COL_TYPE_INT},
+};
+
+ void toEndpoint(Endpoint &endpoint, nlohmann::basic_json<> value)
+{
+    for (auto &el : value.items()) {
+        string key = el.key();
+
+        if (!key.compare(NV_PROTOCOL)) {
+            string val = el.value().get<string>();
+            endpoint.setProtocol(Endpoint::toProtocol(val));
+        }
+        else if (!key.compare(NV_ADDRESS)) {
+            endpoint.setAddress(el.value().get<string>());
+        }
+        else if (!key.compare(NV_PORT)) {
+            endpoint.setPort(el.value().get<int>());
+        }
+        else if (!key.compare("comments")) {
+        }
+        else {
+            SD_LOG(LOG_ERR, "unrecognized key %s", key.c_str());
+        }
+    }
+}
+
+Device::Device(nlohmann::basic_json<> value, Config &config) :
+        seec(config)
+{
+    for (auto &el : value.items()) {
+        string key = el.key();
+
+        if (!key.compare(COL_ID)) {
+            id = el.value().get<string>();
+        }
+        else if (!key.compare(COL_FIRMWARE)) {
+            firmware = el.value().get<string>();
+        }
+        else if (!key.compare(COL_FIRMWARE_SIZE)) {
+            firmwareSize = el.value().get<int>();
+        }
+        else if (!key.compare(COL_OS_VERSION)) {
+            osVersion = el.value().get<string>();
+        }
+        else if (!key.compare(COL_VERIFIER_EP)) {
+            toEndpoint(verifierEndpoint, el.value());
+        }
+        else if (!key.compare(COL_RELYINGPARTY_EP)) {
+            toEndpoint(relyingPartyEndpoint, el.value());
+        }
+        else if (!key.compare(COL_ENCRYPTION_KEY)) {
+            string src = el.value().get<string>();
+            vector<uint8_t> vec;
+            Utils::readHex(vec, src, src.size() / 2);
+
+            setKey(KEY_ENCRYPTION, vec);
+        }
+        else if (!key.compare(COL_ATTESTATION_KEY)) {
+            string src = el.value().get<string>();
+            vector<uint8_t> vec;
+            Utils::readHex(vec, src, src.size() / 2);
+
+            setKey(KEY_ATTESTATION, vec);
+        }
+        else if (!key.compare(COL_AUTH_KEY)) {
+            string src = el.value().get<string>();
+            vector<uint8_t> vec;
+            Utils::readHex(vec, src, src.size() / 2);
+
+            setKey(KEY_AUTH, vec);
+        }
+        else if (!key.compare(COL_NONCE)) {
+            string src = el.value().get<string>();
+            vector<uint8_t> vec;
+            Utils::readHex(vec, src, src.size() / 2);
+
+            nonce.resize(vec.size());
+            memcpy(nonce.at(0), (char *)&vec[0], vec.size());
+            nonce.inc(vec.size());
+        }
+        else if (!key.compare(COL_PASSPORT_EXPIRY)) {
+            passportExpiryDate = el.value().get<int>();
+        }
+        else if (!key.compare(COL_LAST_ATTESTATION)) {
+            lastAttestation = el.value().get<int>();
+        }
+        else if (!key.compare(COL_STATUS)) {
+            status = el.value().get<int>();
+        }
+        else if (!key.compare(COL_SQN)) {
+            sqn = el.value().get<int>();
+        }
+        else {
+            SD_LOG(LOG_ERR, "unrecognized key %s", key.c_str());
+        }
+    }
+}
+
+void Device::deleteDevice(Device *device)
+{
+    string sql = "DELETE FROM Device WHERE ID = '" + device->getId() + "';";
+
+    char *msg;
+    int rc = sqlite3_exec(deviceDB, sql.c_str(), NULL, 0, &msg);
+    if (rc != SQLITE_OK) {
+        SD_LOG(LOG_ERR, "failed to delete device: %s", device->getId().c_str());
+        sqlite3_free(msg);
+    }
+}
+
+int Device::insertDevice(Device *device)
+{
+    return insertDevice(device->toString());
+}
+
+int Device::insertDevice(string device)
+{
+    string sql("INSERT OR REPLACE INTO Device VALUES(" + device + ");");
+
+    char *msg;
+    int rc = sqlite3_exec(deviceDB, sql.c_str(), NULL, 0, &msg);
+    if (rc != SQLITE_OK) {
+        SD_LOG(LOG_ERR, "failed to insert device: %s\n%s", msg, sql.c_str());
+        sqlite3_free(msg);
+    }
+    else {
+        string id = device.substr(0, device.find(","));
+        id = id.substr(1, id.find("'", 1) - 1);  // remove quotes
+        SD_LOG(LOG_DEBUG, "device %s", id.c_str());
+    }
+
+    return 0;
+}
+
+int findCol(const char *name)
+{
+    for (int i = 0; i < (int)(sizeof(cols) / sizeof(Col)); i++) {
+        if (!strcmp(name, cols[i].name))
+            return i;
+    }
+
+    SD_LOG(LOG_ERR, "column not found: %s", name);
+    return -1;
+}
+
+int deviceCallback(void* data, int argc, char** argv, char** azColName)
+{
+    int i;
+
+    Device *device = (Device *) data;
+
+    for (i = 0; i < argc; i++) {
+        char *name = azColName[i];
+        int col = findCol(name);
+        if (col < 0)
+            continue;
+
+        if (cols[col].type == COL_TYPE_TEXT) {
+            string value(argv[i]);
+            Utils::trim(value);
+
+            if (!strcmp(name, COL_ID))
+                device->setId(value);
+            else if (!strcmp(name, COL_FIRMWARE))
+                device->setFirmware(value);
+            else if (!strcmp(name, COL_OS_VERSION))
+                device->setOsVersion(value);
+            else if (!strcmp(name, COL_VERIFIER_EP)) {
+                Endpoint ep(value);
+                device->setVerifierEndpoint(ep);
+            }
+            else if (!strcmp(name, COL_RELYINGPARTY_EP)) {
+                Endpoint ep(value);
+                device->setRelyingPartyEndpoint(ep);
+            }
+        }
+        else if (cols[col].type == COL_TYPE_INT) {
+            int value = strtoul(argv[i], NULL, 10);
+
+            if (!strcmp(name, COL_FIRMWARE_SIZE))
+                device->setFirmwareSize(value);
+            else if (!strcmp(name, COL_PASSPORT_EXPIRY))
+                device->setPassportExpiryDate(value);
+            else if (!strcmp(name, COL_LAST_ATTESTATION))
+                device->setLastAttestation(value);
+            else if (!strcmp(name, COL_STATUS))
+                device->setStatus((bool)value);
+            else if (!strcmp(name, COL_SQN))
+                device->setSqn(value);
+            else {
+                SD_LOG(LOG_ERR, "char column not recogized: %s", name);
+            }
+        }
+        else if (cols[col].type == COL_TYPE_BLOB) {
+            Seec *seec = device->getSeec();
+            Crypto *crypto = seec->getCrypto();
+            if (crypto == NULL) {
+                SD_LOG(LOG_ERR, "null crypto");
+                continue;
+            }
+            if (!strcmp(name, COL_ATTESTATION_KEY))
+                crypto->changeKey(KEY_ATTESTATION, (unsigned char*)argv[i], strlen(argv[i]));
+            else if (!strcmp(name, COL_ENCRYPTION_KEY))
+                crypto->changeKey(KEY_ENCRYPTION,  (unsigned char*)argv[i], strlen(argv[i]));
+            else if (!strcmp(name, COL_AUTH_KEY)) {
+//                for (int j = 0; j < strlen(argv[i]); j++)
+//                    printf("%02x", argv[i][j]);
+//                printf("\n");
+                crypto->changeKey(KEY_AUTH,  (unsigned char*)argv[i], strlen(argv[i]));
+            }
+            else if (!strcmp(name, COL_NONCE)) {
+                Vector &nonce = device->getNonce();
+                nonce.resize(strlen(argv[i]));
+                memcpy(nonce.at(0),  (unsigned char*)argv[i], strlen(argv[i]));
+                nonce.inc(strlen(argv[i]));
+            }
+            else
+                SD_LOG(LOG_ERR, "char column not recogized: %s", name);
+        }
+    }
+    return 0;
+}
+
+Device *Device::selectDevice(string &deviceID)
+{
+    char *msg;
+
+    Device *device = new Device(tmpConfig);
+
+    string sql("SELECT * FROM Device WHERE ID = '" + deviceID + "';");
+    int rc = sqlite3_exec(deviceDB, sql.c_str(), deviceCallback, (void*) device, &msg);
+    if (rc != SQLITE_OK) {
+        SD_LOG(LOG_ERR, "failed to select device: %s", msg);
+        sqlite3_free(msg);
+        goto err;
+    }
+    if (device->getId().length() == 0)  // device not found
+        goto err;
+
+    return device;
+
+err:
+    delete device;
+    return NULL;
+}
+
+void Device::update(string col, string value)
+{
+    string sql = "UPDATE Device SET " + col + " = " + value + " WHERE id = '" + id + "'";
+
+    char *msg;
+    int rc = sqlite3_exec(deviceDB, sql.c_str(), NULL, 0, &msg);
+    if (rc != SQLITE_OK) {
+        SD_LOG(LOG_ERR, "failed to update device passport expiry time: %s", msg);
+        sqlite3_free(msg);
+    }
+}
+
+void Device::createDeviceTable()
+{
+    string sql = "CREATE TABLE IF NOT EXISTS Device("
+            COL_ID               " TEXT PRIMARY KEY     NOT NULL, "
+            COL_FIRMWARE         " TEXT NOT NULL, "
+            COL_FIRMWARE_SIZE    " INT  NOT NULL, "
+            COL_OS_VERSION       " TEXT NOT NULL, "
+            COL_VERIFIER_EP      " TEXT  NOT NULL, "
+            COL_RELYINGPARTY_EP  " TEXT  NOT NULL, "
+            COL_ENCRYPTION_KEY   " BLOB, "
+            COL_ATTESTATION_KEY  " BLOB, "
+            COL_AUTH_KEY         " BLOB, "
+            COL_NONCE            " BLOB, "
+            COL_PASSPORT_EXPIRY  " INT, "
+            COL_LAST_ATTESTATION " INT, "
+            COL_STATUS           " INT, "
+            COL_SQN              " INT);";
+
+    char *msg;
+    int rc = sqlite3_exec(deviceDB, sql.c_str(), NULL, 0, &msg);
+    if (rc != SQLITE_OK) {
+        SD_LOG(LOG_ERR, "failed to create table: %s, %s", msg, sql.c_str());
+        sqlite3_free(msg);
+    }
+}
+
+string Device::toString()
+{
+    // TODO
+    return "'" + id + "', " +
+           "'" + firmware + "', " +
+           to_string(firmwareSize) + ", " +
+           "'" + osVersion + "', '" +
+           verifierEndpoint.toStringOneline() + "', '" +
+           relyingPartyEndpoint.toStringOneline() + "', " +
+           "X'" + Log::toHex(encryptionKey) + "', " +
+           "X'" + Log::toHex(attestationKey) + "', " +
+           "X'" + Log::toHex(authKey) + "', " +
+           "X'" + Log::toHex(nonce) + "', " +
+           to_string(passportExpiryDate) + ", " +
+           to_string(lastAttestation) + ", " +
+           to_string(status) + ", " +
+           to_string(sqn);
+}
+
+void Device::open(Config &config)
+{
+    tmpConfig = config;
+    string &database = config.getDatabase();
+
+    struct stat buffer;
+    if (stat(database.c_str(), &buffer) < 0) {
+        SD_LOG(LOG_ERR, "database %s specified in config.json does not exist.\n"
+                "Please specify another db or create it and import devices using the -i option.", database.c_str());
+        exit(1);
+    }
+
+    int rc = sqlite3_open(database.c_str(), &deviceDB);
+    if (rc) {
+        SD_LOG(LOG_ERR, "can't open database: %s\n", sqlite3_errmsg(deviceDB));
+        return;
+    }
+
+    createDeviceTable();
+}
+
+Device* Device::findDevice(string &deviceID)
+{
+    map<string, Device*>::const_iterator it = devices.find(deviceID);
+    if (it != devices.end()) {
+        return (Device*) it->second;
+    }
+
+    Device *device = selectDevice(deviceID);
+    if (device != NULL) {
+        devices[device->getId()] = device;
+    }
+    return device;
+}

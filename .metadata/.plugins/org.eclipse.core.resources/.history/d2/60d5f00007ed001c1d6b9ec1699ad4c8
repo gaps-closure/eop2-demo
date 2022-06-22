@@ -1,0 +1,27 @@
+﻿/*
+ * Copyright (c) 2022 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * June 10, 2022
+ */
+#include "Config.hpp"
+#include "Provision.hpp"
+#include "ProvisionCL.hpp"
+
+using namespace std;
+
+int main(int argc, char **argv)
+{
+    ProvisionCL cli;
+    cli.parseCmdline(argc, argv);
+
+    Config config(NV_VERIFIER);
+//    config.setImport(cli.isImport());
+    config.parseFile(cli.getConfigFile());
+
+    Provision provision(cli, config);
+    provision.run();
+}

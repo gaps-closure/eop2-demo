@@ -1,0 +1,248 @@
+﻿/*
+ * Copyright (c) 2021 Peraton Labs Inc  - All Rights Reserved.
+ * Proprietary and confidential. Unauthorized copy or use of this file, via
+ * any medium or mechanism is strictly prohibited.
+ *
+ * @author tchen
+ *
+ * Oct 5, 2021
+ */
+
+#include <iostream>
+#include <getopt.h>
+
+#include "nv.h"
+
+#include "Config.hpp"
+#include "Publish.hpp"
+#include "Utils.hpp"
+#include "Log.hpp"
+
+KeyEncType Config::toKeyEncType(string method)
+{
+    if (method.compare("jedi") == 0) {
+        return KEY_ENC_TYPE_JEDI;
+    }
+    else if (method.compare("rsa") == 0) {
+        return KEY_ENC_TYPE_RSA;
+    }
+    else if (method.compare("ec") == 0) {
+        return KEY_ENC_TYPE_EC;
+    }
+    else if (method.compare("none") == 0) {
+        return KEY_ENC_TYPE_NONE;
+    }
+    else {
+        SD_LOG(LOG_ERR, "unrecognized key encryption method %s", method.c_str());
+    }
+    return MIN_KEY_ENC_TYPE;
+}
+
+inline bool stob(string value)
+{
+    return (!value.compare("true") ? true : false);
+}
+
+bool Config::parseTopLevel(bool isProver, string &key, string &value)
+{
+    bool processed = true;
+
+    if (!key.compare(NV_LOG_LEVEL)) {
+        log_level = stoi(value);
+    }
+    else if (!key.compare(NV_PASS_THRU)) {
+        pass_thru_enabled = stob(value);
+    }
+    else if (!key.compare(NV_KEY_DIST)) {
+        key_dist = toKeyEncType(value);
+    }
+    else if (!key.compare(NV_REPORT_INTVL)) {
+        report_interval = stoi(value);
+    }
+    else if (!key.compare(NV_KEY_CHG_INTVL)) {
+        key_change_interval = stoi(value);
+    }
+    else if (!key.compare(NV_KEY_CHANGE)) {
+        key_change_enabled = stob(value);
+    }
+    else if (!key.compare(NV_KEY_ENCRYPTION)) {
+        key_enc_enabled = stob(value);
+    }
+    else if (!key.compare(NV_PASSPORT_PERIOD)) {
+        passport_period = stoi(value);
+    }
+    else if (!key.compare(NV_PAYLOAD_SIZE)) {
+        payload_size = stoi(value);
+    }
+    else if (!key.compare(NV_ATTEST)) {
+        attest_enabled = stob(value);
+    }
+    else if (!key.compare(NV_SEEC)) {
+        seec_enabled = stob(value);
+    }
+    else if (!key.compare(NV_AUTHENTICATION)) {
+        auth_enabled = stob(value);
+    }
+    else if (!key.compare(NV_ENCRYPT)) {
+        enc_enabled = stob(value);
+    }
+    else if (!key.compare(NV_SIGNING)) {
+        sign_enabled = stob(value);
+    }
+    else if (!key.compare(NV_NUM_CYCLES)) {
+        num_cycles = stoi(value);
+    }
+    else if (!key.compare(NV_ITERATIONS)) {
+        iterations = stoi(value);
+    }
+    else if (!key.compare(NV_DATABASE)) {
+        download = stob(value);
+    }
+    else if (!key.compare(NV_ID)) {
+        getComponent().setID(value);
+    }
+    else if (!key.compare(NV_ENC_KEY)) {
+        Utils::readHex(enc_key, value, value.size() / 2);
+    }
+    else if (!key.compare(NV_ATTEST_KEY)) {
+        Utils::readHex(attest_key, value, value.size() / 2);
+    }
+    else if (!key.compare(NV_AUTH_KEY)) {
+        Utils::readHex(auth_key, value, value.size() / 2);
+    }
+    else if (!key.compare(NV_PARAMS_SIZE)) {
+        // size = stoi(value);
+    }
+    else if (!key.compare(NV_PARAMS)) {
+        if (isProver)
+            Utils::readHex(Publish::getParams(), value, value.size() / 2);
+        else
+            Utils::readHex(Subscribe::getParams(), value, value.size() / 2);
+    }
+    else if (!key.compare(NV_URIPATH_SIZE)) {
+        // size = stoi(value);
+    }
+    else if (!key.compare(NV_URIPATH)) {
+        if (isProver)
+            Utils::readHex(Publish::getUripath(), value, value.size() / 2);
+        else
+            Utils::readHex(Subscribe::getUripath(), value, value.size() / 2);
+    }
+    else if (!key.compare(NV_TIMEPATH_SIZE)) {
+        // size = stoi(value);
+    }
+    else if (!key.compare(NV_TIMEPATH)) {
+        if (isProver)
+            Utils::readHex(Publish::getTimepath(), value, value.size() / 2);
+        else
+            Utils::readHex(Subscribe::getTimepath(), value, value.size() / 2);
+    }
+    else if (!key.compare(NV_SIGNKEY_SIZE)) {
+        // size = stoi(value);
+    }
+    else if (!key.compare(NV_SIGNKEY)) {
+        if (isProver)
+            Utils::readHex(Publish::getSigningKey(), value, value.size() / 2);
+        else
+            Utils::readHex(Subscribe::getEncryptKey(), value, value.size() / 2);
+    }
+    else if (!key.compare(NV_ENCRYPTKEY_SIZE) || !key.compare(NV_ENCRYPTKEY)) {
+         SD_LOG(LOG_WARNING, "NV item ignored: %s", key.c_str());
+    }
+    else {
+        // SD_LOG(LOG_ERR, "unrecognized parameter: %s", item.c_str());
+        processed = false;
+    }
+
+    return processed;
+}
+
+void Config::update(string &lines)
+{
+    std::istringstream f(lines);
+    string line;
+    string key, value;
+
+    while (std::getline(f, line)) {
+        stringstream s(line);
+        getline(s, key, ' ');
+        getline(s, value, ' ');
+
+        parseTopLevel(true, key, value);
+    }
+}
+
+bool isInvalidKey(string key)
+{
+    return  (key.compare(NV_COMMENT) &&
+             key.compare(NV_VERIFIER) &&
+             key.compare(NV_PROVER) &&
+             key.compare(NV_FIREWALL) &&
+             key.compare(NV_APP_SERVER));
+}
+
+void Config::parseFile(const string &filename)
+{
+    ifstream fin(filename);
+
+    string line, key, value;
+    bool inComp = false;
+    Endpoint *endpoint = NULL;
+
+    bool isProver = !component.compare(NV_PROVER);
+
+    while (getline(fin, line)) {
+        Utils::trim(line);
+        if (line.size() == 0 || line[0] == '#')
+            continue;
+
+        stringstream s(line);
+        getline(s, key, ' ');
+        getline(s, value, ' ');
+
+        if (parseTopLevel(isProver, key, value)) {
+            continue;
+        }
+        if (inComp) {
+            if (!key.compare(NV_ID)) {
+                configComponent.setID(value);
+            }
+            else if (!key.compare("incoming")) {
+                endpoint = new Endpoint();
+                configComponent.setIncoming(endpoint);
+            }
+            else if (!key.compare("outgoing")) {
+                endpoint = new Endpoint();
+                configComponent.setOutgoing(endpoint);
+            }
+            else if (!key.compare("outgoing2")) {
+                endpoint = new Endpoint();
+                configComponent.setOutgoing2(endpoint);
+            }
+            else if (!key.compare("aService")) {
+                endpoint = new Endpoint();
+                configComponent.setAService(endpoint);
+            }
+            else if (!key.compare(NV_PROTOCOL)) {
+                endpoint->setProtocol(Endpoint::toProtocol(value));
+            }
+            else if (!key.compare(NV_ADDRESS)) {
+                endpoint->setAddress(value);
+            }
+            else if (!key.compare(NV_PORT)) {
+                endpoint->setPort(stoi(value));
+            }
+            else if (!key.compare("end")) {
+                inComp = false;
+            }
+        }
+        else if (!key.compare(component)) {
+            inComp = true;
+        }
+//        else if (isInvalidKey(key)) {
+        else {
+            SD_LOG(LOG_ERR, "unrecognized key %s", key.c_str());
+        }
+    }
+}
+

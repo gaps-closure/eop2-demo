@@ -1,0 +1,136 @@
+# SEDIMENT Provisioning
+This directory contains an application to generate configurations and key materials needed to provision SEDIMENT devices. 
+The application works in one of two modes, GEN or IMPORT. In the GEN mode, the app takes as input a list of device templates and generates devices by creating an ID and the corresponding keys and configurations for each device. The generated devices are inserted into the SEDIMENT sqlite database for system server operations, or saved in a JSON or CSV file for viewing purposes.
+In addition, for each device, the configurations and keys are saved individually in a file, which can be used to provision the device and save them to a persistent storage.
+
+In the IMPORT mode, this app reads the devices in a CSV or JSON file and insert them, without modification, into the SEDIMENT database.
+
+## Contents
+- [SEDIMENT Customizations](#sediment-customizations)
+- [Build](#build)
+- [Prerequisite](#prerequisite)
+- [GEN Mode](#gen-mode)
+- [IMPORT MOde](#import-mode)
+- [Monitoring Output](#monitoring-output)
+- [Test](#test)
+
+## Prerequisite
+Follow the instructions at [Zephyr](<https://docs.zephyrproject.org/latest/getting_started/index.html>) to set up both Zephyr and its SDK.
+The following description refers to zephyrproject/zephyr as $ZEPHYR and the sediment installation directory as $SEDIMENT. 
+
+## SEDIMENT Customizations
+Create in zephyr a symbolic link to the root of the sediment repository.
+
+        $ cd $ZEPHYR
+        $ ln -s $SEDIMENT .
+
+## Build
+Build the SEDIMENT provisioning as follows
+
+        $ cd $SEDIMENT/configs/operations
+        $ mkdir build; cd build
+        $ cmake ..; make
+
+```
+demo1$ ./provision -h
+./provision
+  -m/--provision-mode [ GEN | IMPORT ]
+      Whether to generate devices or import from files. default: GEN
+  -f/--config-file <json-config>
+      Use the specified configuration file in json. default: ../../../data/config.json
+  -i/--input-file <file> 
+      Read the devices from the <file>. default: ../../../data/devices-template.json
+  -d/--output-dir <dir>
+      Directory where all output files are generated. default: /tmp/sediment
+  -j/--input-format [ JSON | CSV ] 
+      Input file format. Ignored if GEN mode, which only uses JSON input. default: JSON
+  -p/--output-format [ JSON | CSV | DB ] 
+      Output file format. default DB
+  -u/--wkd-ibe-uri <URI> 
+      WKD-IBE URI. default Group1/BuildingA/Floor2
+  -l/--wdk-paramater-len <int> 
+      WKD-IBE paramter length. default 11
+  -h/--help
+      This help.
+
+```
+
+## GEN Mode
+        
+If the BOARD environment variable is not set, add `-b <BOARD>` to the command (change accordingly for STM32F767ZI)
+
+        $ west build -b efm32gg_stk3701a sediment/apps/giant --pristine
+        
+The build will fail because of configuration errors. Copy the correct configurations as follows (replace giant with stm for STM32F767ZI).
+
+        $ cp $SEDIMENT/apps/giant/doc/dot.config build/zephyr/.config
+
+Rebuild without the --pristine option (change -b option accordingly for STM32F767ZI)
+        $ west build -b efm32gg_stk3701a sediment/apps/giant
+
+## Configurations
+As initially built, default board ID, server IP addresses and ports and other settings are included. To provision a device, prepare a configuration file, based on the sample, e.g., in $SEDIMENT/configs/boards/gg-01. Changes the options appropriately.
+
+Connect the board to the host PC.
+
+Open a serial terminal app, e.g. minicom or gtkterm, and connect to the detected deivce, e.g. at /dev/ttyACM0
+
+        $ minicom -D /dev/ttyACM0 
+
+In a separate terminal, run the provisioning script and give the configuration file as an argument as follows.
+
+        $ python $SEDIMENT/utils/provision.py provision $SEDIMENT/configs/boards/gg-01 
+
+This will write, via UART, the configurations into the board's non-volatile memory, from which sediments loads the power-on settings. These settings remain on the boards even after the sediment app is updated or the device is power-cycled. If the device will run RSA encryption or verification, a separate public key and a private key need to be provisioned, as follows.
+
+        $ python $SEDIMENT/utils/provision.py rsa $SEDIMENT/data/publicRSA.pem/$SEDIMENT/data/privateRSA.pem
+
+```
+sediment <options>
+  read                   :read all items
+  read <item>            :read the specified item
+  provision <pathname>   :program the wkd flash using items defined in <pathname>
+  rsa <public> <private> :program rsa public and private keys
+  rsa2 <sign> <verify>   :program rsa signing and verification keys
+  write <item> <value>   :program the specified item (not reliable, needs to erase first)
+
+Available NV items:
+    address               aes_key               attestation           attestation_sqn       
+    authentication        encryption            id                    iterations            
+    key_change            key_change_interval   key_dist              key_encryption        
+    magic                 num_cycles            params_pub            params_pub_size       
+    pass_thru             passport_period       payload_size          port                  
+    protocol              ra_key                report_interval       rsa_private           
+    rsa_private_size      rsa_public            rsa_public_size       rsa_sign              
+    rsa_sign_size         rsa_verify            rsa_verify_size       seec                  
+    signing               signkey_pub           signkey_pub_size      timepath_pub          
+    timepath_pub_size     uripath_pub           uripath_pub_size  
+```
+
+## Flashing
+To install SEDIMENT on a device, do the following.
+
+1.  Change directory to zephyr
+
+        $ cd $ZEPHYR
+        
+2. Connect the Giant Gecko to the host computer using USB and run the command below
+
+        $ west flash
+
+Once the flashing is completed, the device will reset and start running. Note that, for Giant Gecko, SEGGER J-Link needs to be installed on the host. If not, download it from [J-Link](https://www.segger.com/downloads/jlink/) and follow the [instructions](https://eclipse-embed-cdt.github.io/debug/jlink/install/) to install. 
+
+## Monitoring Output
+Use a serial terminal, e.g. minicom on Linux or putty on Windows, to monitor the messages with the following settings:
+
+        Speed: 115200
+        Data: 8 bits
+        Parity: None
+        Stop bits: 1
+
+On Linux, do the following, assuming the deivce is detected at /dev/ttyACM0.
+
+        $ minicom -D /dev/ttyACM0 
+
+## Test
+Review [Test Configuration](../../servers/README.md) to see how to set up the servers and test it together with the device.

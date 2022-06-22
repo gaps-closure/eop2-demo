@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="org.apache.log4j.Logger"/>
+    <fullyQualifiedTypeName name="java.lang.InheritableThreadLocal"/>
+    <fullyQualifiedTypeName name="com.peratonlabs.closure.callgraph.data.FieldCG"/>
+    <fullyQualifiedTypeName name="com.peratonlabs.closure.callgraph.data.Call"/>
+    <fullyQualifiedTypeName name="com.peratonlabs.closure.callgraph.data.FieldRef"/>
+    <fullyQualifiedTypeName name="com.peratonlabs.closure.callgraph.data.MethodCG"/>
+    <fullyQualifiedTypeName name="java.util.HashSet"/>
+    <fullyQualifiedTypeName name="org.opencv.core.Core"/>
+    <fullyQualifiedTypeName name="org.opencv.core.CvType"/>
+    <fullyQualifiedTypeName name="org.opencv.core.Mat"/>
+    <fullyQualifiedTypeName name="org.opencv.imgcodecs.Imgcodecs"/>
+    <fullyQualifiedTypeName name="java.util.ArrayList"/>
+    <fullyQualifiedTypeName name="java.util.List"/>
+    <fullyQualifiedTypeName name="org.opencv.imgproc.Imgproc"/>
+    <fullyQualifiedTypeName name="java.util.Arrays"/>
+    <fullyQualifiedTypeName name="org.opencv.videoio.VideoCapture"/>
+</qualifiedTypeNameHistroy>
