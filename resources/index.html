@@ -30,6 +30,11 @@
     <h1><a href="index.html">CLOSURE Demo</a></h1>
     <p>Send video frames using a websocket</p>
   </header>
+  <form onsubmit="return false;">
+    <input type="text" name="message" value="Hello, World!"/>
+    <input type="button" value="Send Web Socket Data" onclick="send(this.form.message.value)"/>
+  </form>
+  <button onclick="connect()">Connect</button>
   <main>
     <!-- <button>Start streaming</button> -->
     <div class="row">
@@ -50,20 +55,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script>
     var socket;
-    if (window.WebSocket) {
-        socket = new WebSocket("ws://localhost:8080/myapp");
-        socket.onmessage = function(event) {
-            alert("Received data from websocket: " + event.data);
-        };
-        socket.onopen = function(event) {
-            alert("Web Socket opened!");
-        };
-        socket.onclose = function(event) {
-            alert("Web Socket closed.");
-        };
-    } else {
-        alert("Your browser does not support Websockets. (Use Chrome)");
-    }
 
     function send(message) {
         if (!window.WebSocket) {
@@ -75,10 +66,24 @@
             alert("The socket is not open.");
         }
     }
+    
+    function connect() {
+        if (window.WebSocket) {
+            socket = new WebSocket("ws://localhost:8080/myapp");
+            socket.onmessage = function(event) {
+                alert("Received data from websocket: " + event.data);
+            };
+            socket.onopen = function(event) {
+                alert("Web Socket opened!");
+            };
+            socket.onclose = function(event) {
+                alert("Web Socket closed.");
+            };
+        } else {
+            alert("Your browser does not support Websockets. (Use Chrome)");
+        }
+    }
 </script>
-<form onsubmit="return false;">
-    <input type="text" name="message" value="Hello, World!"/>
-    <input type="button" value="Send Web Socket Data" onclick="send(this.form.message.value)"/>
-</form>
+
 </body>
 </html>
