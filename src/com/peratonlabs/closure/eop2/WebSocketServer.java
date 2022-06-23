@@ -22,6 +22,7 @@ import io.undertow.Undertow;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.websockets.core.AbstractReceiveListener;
 import io.undertow.websockets.core.BufferedTextMessage;
+import io.undertow.websockets.core.StreamSourceFrameChannel;
 import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.WebSockets;
 import io.undertow.websockets.WebSocketConnectionCallback;
@@ -31,13 +32,17 @@ import static io.undertow.Handlers.path;
 import static io.undertow.Handlers.resource;
 import static io.undertow.Handlers.websocket;
 
+import org.xnio.ChannelListener;
+
 /**
  * @author Stuart Douglas
  */
 //@UndertowExample("Web Sockets")
-public class WebSocketServer {
-
-    public static void main(final String[] args) {
+public class WebSocketServer 
+{
+    private CameraReader camera;
+    
+    private void read() {
         Undertow server = Undertow.builder()
                 .addHttpListener(8080, "localhost")
                 .setHandler(path()
@@ -45,7 +50,7 @@ public class WebSocketServer {
 
                             @Override
                             public void onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel) {
-                                CameraReader camera = new CameraReader(channel);
+                                camera = new CameraReader(channel);
                                 Thread thread = new Thread(camera);
                                 thread.start();
                                 
@@ -55,6 +60,10 @@ public class WebSocketServer {
                                     protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
                                         WebSockets.sendText(message.getData(), channel, null);
                                     }
+                                    
+                                    protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
+                                        camera.setConnected(false);
+                                    }
                                 });
                                 channel.resumeReceives();
                             }
@@ -62,6 +71,11 @@ public class WebSocketServer {
                         .addPrefixPath("/", resource(new ClassPathResourceManager(WebSocketServer.class.getClassLoader(), WebSocketServer.class.getPackage())).addWelcomeFiles("index.html")))
                 .build();
         server.start();
+    }
+    
+    public static void main(final String[] args) {
+        WebSocketServer server = new WebSocketServer();
+        server.read();
     }
 
 }

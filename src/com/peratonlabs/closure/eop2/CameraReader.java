@@ -25,6 +25,7 @@ import io.undertow.websockets.core.WebSockets;
 public class CameraReader implements Runnable
 {
     private WebSocketChannel channel;
+    private boolean connected = true;
     
     public CameraReader(WebSocketChannel channel) {
         this.channel = channel;
@@ -38,7 +39,7 @@ public class CameraReader implements Runnable
         VideoCapture capture = new VideoCapture(0);
         
         // Reading the next video frame from the camera
-//        while (true) {
+        while (connected) {
             Mat mat = new Mat();
             capture.read(mat);
 
@@ -46,30 +47,30 @@ public class CameraReader implements Runnable
 
             byte[] bytes = new byte[(int) imgSize];
             mat.get(0,0,bytes);
-            // now somehow save mat.type(), mat.rows(), mat.cols() and the bytes, later restore it:
-            Mat m2 = new Mat(mat.rows(), mat.cols(), mat.type());
-            m2.put(0,0, bytes);
 
-            System.out.println("image size : " + imgSize + " rows: " + mat.rows() + " cols: " + mat.cols() + " :" + mat.type());
-            System.out.println(mat.toString());
+//            System.out.println("image size : " + imgSize + " rows: " + mat.rows() + " cols: " + mat.cols() + " :" + mat.type());
+//            System.out.println(mat.toString());
 
             try {
-                for (int i = 0; i < 640*480; i++) {
-                    System.out.print((((int)bytes[i]) & 0xff) + ", ");
-                    if (i % 30 == 0 && i != 0)
-                        System.out.println();
-                }
-                System.out.println();
-                WebSockets.sendBinaryBlocking(ByteBuffer.wrap(bytes), channel);
+//                for (int i = 0; i < 6; i++) {
+//                    System.out.print((((int)bytes[i]) & 0xff) + ", ");
+//                }
+//                System.out.println();
+                if (!channel.isCloseFrameReceived())
+                    WebSockets.sendBinaryBlocking(ByteBuffer.wrap(bytes), channel);
             }
             catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             
-            HighGui.imshow("Image", mat);
-            HighGui.waitKey();
-//        }
-          capture.release();
+//            HighGui.imshow("Image", mat);
+//            HighGui.waitKey();
+        }
+        capture.release();
+    }
+
+    public void setConnected(boolean connected) {
+        this.connected = connected;
     }
 }
