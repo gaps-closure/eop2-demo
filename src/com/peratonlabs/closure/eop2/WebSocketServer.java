@@ -41,10 +41,14 @@ public class WebSocketServer {
         Undertow server = Undertow.builder()
                 .addHttpListener(8080, "localhost")
                 .setHandler(path()
-                        .addPrefixPath("/myapp", websocket(new WebSocketConnectionCallback() {
+                        .addPrefixPath("/video", websocket(new WebSocketConnectionCallback() {
 
                             @Override
                             public void onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel) {
+                                CameraReader camera = new CameraReader(channel);
+                                Thread thread = new Thread(camera);
+                                thread.start();
+                                
                                 channel.getReceiveSetter().set(new AbstractReceiveListener() {
 
                                     @Override
