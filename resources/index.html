@@ -28,15 +28,16 @@
 <body>
   <header>
     <h1><a href="index.html">CLOSURE Demo</a></h1>
-    <p>Send video frames using a websocket</p>
+    <!-- <p>Send video frames using a websocket</p> -->
   </header>
   <form onsubmit="return false;">
     <input type="text" name="message" value="Hello, World!"/>
     <input type="button" value="Send Web Socket Data" onclick="send(this.form.message.value)"/>
   </form>
   
-  <button onclick="connect()">Connect</button>
-  <button onclick="disconnect()">Disconnect</button>
+  <input type="button" value="Connect"  id="btn" />
+  <!--  <button onclick="connect()">Connect</button> -->
+  <!--  <button onclick="disconnect()">Disconnect</button> -->
   <main>
     <!-- <button>Start streaming</button> -->
     <div class="row">
@@ -55,12 +56,17 @@
 
     var socket;
 
-    function* hexFormatValues(buffer) {
-    	  for (let x of buffer) {
-    	    const hex = x.toString(16)
-    	    yield hex.padStart(2, '0')
-    	  }
-    	}
+    const btn = document.getElementById("btn");
+    btn.addEventListener("click", () => {
+        if (btn.value === "Connect") {
+            btn.value = "Disconnect";
+            connect();
+        }
+        else {
+            btn.value= "Connect";
+            disconnect();
+        }
+    })
     
     async function renderImage(ctx, blob) {
       var buf;
@@ -113,13 +119,6 @@
         }
     }
     
-    function fake() {
-    	var img = [111, 111, 111];
- 	
-    	let mat = cv.matFromArray(480, 640, cv.CV_8UC3,img);
-    	cv.imshow('decoded', mat);
-    }
-
     function connect() {
         if (window.WebSocket) {
             socket = new WebSocket("ws://localhost:8080/video");
