@@ -27,6 +27,9 @@ public class CameraReader implements Runnable
     private WebSocketChannel channel;
     private boolean connected = true;
     
+    public CameraReader() {
+    }
+    
     public CameraReader(WebSocketChannel channel) {
         this.channel = channel;
     }
@@ -39,7 +42,7 @@ public class CameraReader implements Runnable
         VideoCapture capture = new VideoCapture(0);
         
         // Reading the next video frame from the camera
-        while (!channel.isCloseFrameReceived()) {
+        while (channel == null || !channel.isCloseFrameReceived()) {
             Mat mat = new Mat();
             capture.read(mat);
 
@@ -56,21 +59,25 @@ public class CameraReader implements Runnable
 //                    System.out.print((((int)bytes[i]) & 0xff) + ", ");
 //                }
 //                System.out.println();
-                if (!channel.isCloseFrameReceived())
+                if (channel != null && !channel.isCloseFrameReceived())
                     WebSockets.sendBinaryBlocking(ByteBuffer.wrap(bytes), channel);
             }
             catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             
-//            HighGui.imshow("Image", mat);
-//            HighGui.waitKey();
+            HighGui.imshow("Image", mat);
+            HighGui.waitKey(1);
         }
         capture.release();
     }
 
     public void setConnected(boolean connected) {
         this.connected = connected;
+    }
+    
+    public static void main(String[] args) {
+        CameraReader camera = new CameraReader();
+        camera.run();
     }
 }
