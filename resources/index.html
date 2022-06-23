@@ -37,24 +37,16 @@
   
   <button onclick="connect()">Connect</button>
   <button onclick="disconnect()">Disconnect</button>
-  
   <main>
     <!-- <button>Start streaming</button> -->
     <div class="row">
-      <figure>
-        <video id="player" width="640" height="360" controls autoplay></video><br />
-        <caption>source</caption>
-      </figure>
-      <figure>
-        <canvas id="preview" width="640" height="360"></canvas><br />
-        <caption>canvas preview (local)</caption>
-      </figure>
       <figure>
         <canvas id="decoded" width="640" height="360"></canvas><br />
         <caption>websocket <span id="websocket-latency"></span></caption>
       </figure>
     </div>
   </main>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script async src="js/opencv.js"></script>
 <script>
@@ -63,26 +55,51 @@
 
     var socket;
 
+    function* hexFormatValues(buffer) {
+    	  for (let x of buffer) {
+    	    const hex = x.toString(16)
+    	    yield hex.padStart(2, '0')
+    	  }
+    	}
+    
     async function renderImage(ctx, blob) {
+      var buf;
+    	(async () => {
+    		  buf = await blob.arrayBuffer();
+    		  console.log( "------- " + buf.byteLength ); // 5
+    		  
+    		  var view = new DataView(buf);
+    		  console.log(view.getUint8(0) + " " + view.getUint8(1));
+    		  
+    		  var array = new Uint8ClampedArray(buf);
+
+    		  //var image = new ImageData(array, 640, 480);
+    		  //decoded.putImageData(image, 0, 0);
+    		  
+    	      let mat = cv.matFromArray(480, 640, cv.CV_8UC3, array);
+    	      cv.imshow('decoded', mat);
+    		  
+    		})();
+    	
 //      const bmp = await createImageBitmap(blob);
 //      ctx.drawImage(bmp, 0, 0);
 //      bmp.close();
-      console.log("rendering");
+      //console.log("rendering");
       //let mat = new cv.Mat([480, 640], cv.CV_8UC3);
       
       // We read the loaded image from imgElement and save it in a variable
       // we could modify later with OpenCV functions 
       //let mat = cv.imread(blob);
   //let mat = new cv.Mat(480, 640, cv.CV_8UC3);
-  let mat = cv.matFromArray(480, 640, cv.CV_8UC3, blob);
+//  let mat = cv.matFromArray(480, 640, cv.CV_8UC3, buf);
       
       //let ctx = canvas.getContext("2d");
       //let imgData = ctx.getImageData(0, 0, 480, 640);
       //let mat = cv.matFromImageData(blob);
       
-      console.log("read..............." + blob.length());
+      //console.log("read..............." + blob.size);
       // We print the saved or modified image to the canvas element with id 'decode' 
-      cv.imshow('decoded', mat);
+  //    cv.imshow('decoded', mat);
     }
     
     function send(message) {
@@ -96,6 +113,13 @@
         }
     }
     
+    function fake() {
+    	var img = [111, 111, 111];
+ 	
+    	let mat = cv.matFromArray(480, 640, cv.CV_8UC3,img);
+    	cv.imshow('decoded', mat);
+    }
+
     function connect() {
         if (window.WebSocket) {
             socket = new WebSocket("ws://localhost:8080/video");
@@ -104,6 +128,7 @@
             	
                 let blob = m.data;
                 renderImage(dCtx, blob);
+                //fake();
             };
             socket.onopen = function(event) {
                 console.log("Web Socket opened!");

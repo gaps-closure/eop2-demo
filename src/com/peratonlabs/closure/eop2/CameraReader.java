@@ -54,6 +54,12 @@ public class CameraReader implements Runnable
             System.out.println(mat.toString());
 
             try {
+                for (int i = 0; i < 640*480; i++) {
+                    System.out.print((((int)bytes[i]) & 0xff) + ", ");
+                    if (i % 30 == 0 && i != 0)
+                        System.out.println();
+                }
+                System.out.println();
                 WebSockets.sendBinaryBlocking(ByteBuffer.wrap(bytes), channel);
             }
             catch (IOException e) {
