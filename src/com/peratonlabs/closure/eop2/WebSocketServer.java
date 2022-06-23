@@ -62,7 +62,7 @@ public class WebSocketServer
                                     }
                                     
                                     protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
-                                        camera.setConnected(false);
+                                        // camera.setConnected(false);
                                     }
                                 });
                                 channel.resumeReceives();

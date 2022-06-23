@@ -39,7 +39,7 @@ public class CameraReader implements Runnable
         VideoCapture capture = new VideoCapture(0);
         
         // Reading the next video frame from the camera
-        while (connected) {
+        while (!channel.isCloseFrameReceived()) {
             Mat mat = new Mat();
             capture.read(mat);
 
