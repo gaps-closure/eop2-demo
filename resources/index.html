@@ -56,9 +56,35 @@
     </div>
   </main>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script async src="js/opencv.js"></script>
 <script>
+		const decoded = document.querySelector("#decoded");
+		const dCtx = decoded.getContext('2d');
+
     var socket;
 
+    async function renderImage(ctx, blob) {
+//      const bmp = await createImageBitmap(blob);
+//      ctx.drawImage(bmp, 0, 0);
+//      bmp.close();
+      console.log("rendering");
+      //let mat = new cv.Mat([480, 640], cv.CV_8UC3);
+      
+      // We read the loaded image from imgElement and save it in a variable
+      // we could modify later with OpenCV functions 
+      //let mat = cv.imread(blob);
+  //let mat = new cv.Mat(480, 640, cv.CV_8UC3);
+  let mat = cv.matFromArray(480, 640, cv.CV_8UC3, blob);
+      
+      //let ctx = canvas.getContext("2d");
+      //let imgData = ctx.getImageData(0, 0, 480, 640);
+      //let mat = cv.matFromImageData(blob);
+      
+      console.log("read..............." + blob.length());
+      // We print the saved or modified image to the canvas element with id 'decode' 
+      cv.imshow('decoded', mat);
+    }
+    
     function send(message) {
         if (!window.WebSocket) {
             return;
@@ -73,8 +99,11 @@
     function connect() {
         if (window.WebSocket) {
             socket = new WebSocket("ws://localhost:8080/video");
-            socket.onmessage = function(event) {
-            	console.log("Received data from websocket: " + event.data);
+            socket.onmessage = function(m) {
+            	  console.log("Received data from websocket: " + m.data);
+            	
+                let blob = m.data;
+                renderImage(dCtx, blob);
             };
             socket.onopen = function(event) {
                 console.log("Web Socket opened!");
