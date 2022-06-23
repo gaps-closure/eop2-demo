@@ -16,16 +16,17 @@
     <input type="button" value="Send Web Socket Data" onclick="send(this.form.message.value)"/>
   </form>
   
-  <input type="button" value="Connect"  id="btn" />
+  <!--  <label id="label-view">Not Viewing</label>  -->
   <!--  <button onclick="connect()">Connect</button> -->
   <!--  <button onclick="disconnect()">Disconnect</button> -->
   
   <main>
     <!-- <button>Start streaming</button> -->
+        <input type="button" value="Connect"  id="btn" />
     <div class="row">
       <figure>
         <canvas id="decoded" width="640" height="360"></canvas><br />
-        <caption>Live View <span id="websocket-latency"></span></caption>
+        <figcaption id="caption">Live View <span id="websocket-latency"></span></figcaption >
       </figure>
     </div>
   </main>
@@ -39,59 +40,32 @@
 
     var socket;
 
+    //const label = document.getElementById("label-view");
+    const caption = document.getElementById("caption");
+    
     const btn = document.getElementById("btn");
-    btn.style.background='#ff0000';
+    
     btn.addEventListener("click", () => {
         if (btn.value === "Connect") {
             btn.value = "Disconnect";
-            btn.style.background='#00ff00';
+            caption.innerHTML = "Live View";
+            //btn.style.background='#00ff00';
             connect();
         }
         else {
             btn.value= "Connect";
-            btn.style.background='#ff0000';
+            caption.innerHTML = "View Stopped";
+            // btn.style.background='#ff0000';
             disconnect();
         }
     })
     
     async function renderImage(ctx, blob) {
-      var buf;
-    	(async () => {
-    		  buf = await blob.arrayBuffer();
-    		  console.log( "------- " + buf.byteLength ); // 5
-    		  
-    		  var view = new DataView(buf);
-    		  console.log(view.getUint8(0) + " " + view.getUint8(1));
-    		  
-    		  var array = new Uint8ClampedArray(buf);
+      var buf = await blob.arrayBuffer();
+    	var array = new Uint8ClampedArray(buf);
 
-    		  //var image = new ImageData(array, 640, 480);
-    		  //decoded.putImageData(image, 0, 0);
-    		  
-    	      let mat = cv.matFromArray(480, 640, cv.CV_8UC3, array);
-    	      cv.imshow('decoded', mat);
-    		  
-    		})();
-    	
-//      const bmp = await createImageBitmap(blob);
-//      ctx.drawImage(bmp, 0, 0);
-//      bmp.close();
-      //console.log("rendering");
-      //let mat = new cv.Mat([480, 640], cv.CV_8UC3);
-      
-      // We read the loaded image from imgElement and save it in a variable
-      // we could modify later with OpenCV functions 
-      //let mat = cv.imread(blob);
-  //let mat = new cv.Mat(480, 640, cv.CV_8UC3);
-//  let mat = cv.matFromArray(480, 640, cv.CV_8UC3, buf);
-      
-      //let ctx = canvas.getContext("2d");
-      //let imgData = ctx.getImageData(0, 0, 480, 640);
-      //let mat = cv.matFromImageData(blob);
-      
-      //console.log("read..............." + blob.size);
-      // We print the saved or modified image to the canvas element with id 'decode' 
-  //    cv.imshow('decoded', mat);
+    	let mat = cv.matFromArray(480, 640, cv.CV_8UC3, array);
+    	cv.imshow('decoded', mat);
     }
     
     function send(message) {
@@ -109,11 +83,10 @@
         if (window.WebSocket) {
             socket = new WebSocket("ws://localhost:8080/video");
             socket.onmessage = function(m) {
-            	  console.log("Received data from websocket: " + m.data);
+            	  // console.log("Received data from websocket: " + m.data);
             	
                 let blob = m.data;
                 renderImage(dCtx, blob);
-                //fake();
             };
             socket.onopen = function(event) {
                 console.log("Web Socket opened!");
