@@ -16,7 +16,9 @@ import java.nio.ByteBuffer;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
 import org.opencv.highgui.HighGui;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
 
 import io.undertow.websockets.core.WebSocketChannel;
@@ -45,20 +47,17 @@ public class CameraReader implements Runnable
         while (channel == null || !channel.isCloseFrameReceived()) {
             Mat mat = new Mat();
             capture.read(mat);
+            
+            MatOfByte mem = new MatOfByte();
+            Imgcodecs.imencode(".jpg", mat, mem);
+            byte[] memBytes = mem.toArray();
 
             long imgSize = mat.total() * mat.elemSize();
 
             byte[] bytes = new byte[(int) imgSize];
-            mat.get(0,0,bytes);
-
-//            System.out.println("image size : " + imgSize + " rows: " + mat.rows() + " cols: " + mat.cols() + " :" + mat.type());
-//            System.out.println(mat.toString());
+            mat.get(0, 0, bytes);
 
             try {
-//                for (int i = 0; i < 6; i++) {
-//                    System.out.print((((int)bytes[i]) & 0xff) + ", ");
-//                }
-//                System.out.println();
                 if (channel != null && !channel.isCloseFrameReceived())
                     WebSockets.sendBinaryBlocking(ByteBuffer.wrap(bytes), channel);
             }
