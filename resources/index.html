@@ -34,7 +34,7 @@
       </figure>
     </div>
 
-
+  <img id="photo">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script async src="js/opencv.js"></script>
   
@@ -62,11 +62,18 @@
     })
     
     async function renderImage(ctx, blob) {
-        var buf = await blob.arrayBuffer();
-        var array = new Uint8ClampedArray(buf);
+        //var buf = await blob.arrayBuffer();
+        //var array = new Uint8ClampedArray(buf);
   
-        let mat = cv.matFromArray(480, 640, cv.CV_8UC3, array);
-        cv.imshow('player', mat);
+        //let mat = cv.matFromArray(480, 640, cv.CV_8UC3, array);
+        //cv.imshow('player', mat);
+        
+        //var arrayBufferView = new Uint8Array( buf );
+        //var blobx = new Blob( [ arrayBufferView ], { type: "image/jpeg" } );
+        var urlCreator = window.URL || window.webkitURL;
+        var imageUrl = urlCreator.createObjectURL( blob );
+        var img = document.getElementById("photo");
+        img.src = imageUrl;
     }
     
     function send(message) {

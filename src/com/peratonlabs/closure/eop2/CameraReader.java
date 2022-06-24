@@ -11,6 +11,8 @@
  */
 package com.peratonlabs.closure.eop2;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -51,15 +53,23 @@ public class CameraReader implements Runnable
             MatOfByte mem = new MatOfByte();
             Imgcodecs.imencode(".jpg", mat, mem);
             byte[] memBytes = mem.toArray();
+//            
+//            MatOfByte mob = new MatOfByte(memBytes);
+//            Mat xxx = Imgcodecs.imdecode(mob, Imgcodecs.IMREAD_COLOR);
+//            HighGui.imshow("Image", xxx);
+//            HighGui.waitKey();
 
             long imgSize = mat.total() * mat.elemSize();
 
             byte[] bytes = new byte[(int) imgSize];
             mat.get(0, 0, bytes);
+            
+//          Mat m2 = new Mat(mat.rows(), mat.cols(), mat.type());
+//          m2.put(0,0, bytes);
 
             try {
                 if (channel != null && !channel.isCloseFrameReceived())
-                    WebSockets.sendBinaryBlocking(ByteBuffer.wrap(bytes), channel);
+                    WebSockets.sendBinaryBlocking(ByteBuffer.wrap(memBytes), channel);
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -69,6 +79,28 @@ public class CameraReader implements Runnable
             HighGui.waitKey(1);
         }
         capture.release();
+    }
+    
+    public BufferedImage toBufferedImage(Mat m) {
+        if (!m.empty()) {
+            int type = BufferedImage.TYPE_BYTE_GRAY;
+            if (m.channels() > 1) {
+                type = BufferedImage.TYPE_3BYTE_BGR;
+            }
+            
+            int bufferSize = m.channels() * m.cols() * m.rows();
+            byte[] b = new byte[bufferSize];
+            m.get(0, 0, b); // get all the pixels
+            
+            BufferedImage image = new BufferedImage(m.cols(), m.rows(), type);
+            
+            final byte[] targetPixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+            System.arraycopy(b, 0, targetPixels, 0, b.length);
+            
+            return image;
+        }
+        
+        return null;
     }
 
     public void setConnected(boolean connected) {
