@@ -25,8 +25,8 @@
         <input type="button" value="Connect"  id="btn" />
     <div class="row">
       <figure>
-        <canvas id="decoded" width="640" height="360"></canvas><br />
-        <figcaption id="caption">Live View <span id="websocket-latency"></span></figcaption >
+        <figcaption id="caption">Video Monitor <span id="websocket-latency"></span></figcaption >
+        <canvas id="player" width="640" height="360"></canvas><br />
       </figure>
     </div>
   </main>
@@ -35,14 +35,11 @@
   <script async src="js/opencv.js"></script>
   
 <script>
-		const decoded = document.querySelector("#decoded");
-		const dCtx = decoded.getContext('2d');
+		const player = document.querySelector("#player");
+		const dCtx = player.getContext('2d');
 
     var socket;
-
-    //const label = document.getElementById("label-view");
     const caption = document.getElementById("caption");
-    
     const btn = document.getElementById("btn");
     
     btn.addEventListener("click", () => {
@@ -61,11 +58,11 @@
     })
     
     async function renderImage(ctx, blob) {
-      var buf = await blob.arrayBuffer();
-    	var array = new Uint8ClampedArray(buf);
-
-    	let mat = cv.matFromArray(480, 640, cv.CV_8UC3, array);
-    	cv.imshow('decoded', mat);
+	      var buf = await blob.arrayBuffer();
+	    	var array = new Uint8ClampedArray(buf);
+	
+	    	let mat = cv.matFromArray(480, 640, cv.CV_8UC3, array);
+	    	cv.imshow('player', mat);
     }
     
     function send(message) {
@@ -74,28 +71,38 @@
         }
         if (socket.readyState == WebSocket.OPEN) {
             socket.send(message);
-        } else {
+        } 
+        else {
             alert("The socket is not open.");
         }
     }
     
     function connect() {
-        if (window.WebSocket) {
-            socket = new WebSocket("ws://localhost:8080/video");
-            socket.onmessage = function(m) {
-            	  // console.log("Received data from websocket: " + m.data);
-            	
-                let blob = m.data;
-                renderImage(dCtx, blob);
-            };
-            socket.onopen = function(event) {
-                console.log("Web Socket opened!");
-            };
-            socket.onclose = function(event) {
-            	console.log("Web Socket closed.");
-            };
-        } else {
-            alert("Your browser does not support Websockets. (Use Chrome)");
+        if (!window.WebSocket) {
+        	  alert("Your browser does not support Websockets. (Use Chrome)");
+        	  return;
+        }
+        socket = new WebSocket("ws://localhost:8080/video");
+        socket.onmessage = function(m) {
+        	  // console.log("Received data from websocket: " + m.data);
+        	
+            let blob = m.data;
+            renderImage(dCtx, blob);
+        };
+        
+        socket.onopen = function(event) {
+            console.log("Web Socket opened!");
+        };
+        
+        socket.onclose = function(event) {
+        	  console.log("Web Socket closed.");
+              
+            btn.value= "Connect";
+            caption.innerHTML = "View Stopped";
+        };
+        
+        socket.onerror = function(event) {
+        	alert("Connection to " + event.target.URL + " failed.");
         }
     }
     

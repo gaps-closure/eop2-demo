@@ -25,7 +25,7 @@ public class HelloWorldServer {
                     @Override
                     public void handleRequest(final HttpServerExchange exchange) throws Exception {
                         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
-                        exchange.getResponseSender().send("Hello World Ta");
+                        exchange.getResponseSender().send("Hello World");
                     }
                 }).build();
         server.start();
