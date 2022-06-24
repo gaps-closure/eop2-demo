@@ -87,3 +87,7 @@ video, canvas {
     background: #666;
     -webkit-filter: brightness(108.5%);
 }
+h1 {
+  text-align: center;
+}
+
