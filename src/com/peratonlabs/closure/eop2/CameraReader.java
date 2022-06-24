@@ -13,9 +13,19 @@ package com.peratonlabs.closure.eop2;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
+import javax.imageio.ImageIO;
+
+import org.jcodec.codecs.h264.H264Encoder;
+import org.jcodec.common.model.ColorSpace;
+import org.jcodec.common.model.Picture;
+import org.jcodec.scale.AWTUtil;
+import org.jcodec.scale.RgbToYuv420;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
@@ -102,6 +112,37 @@ public class CameraReader implements Runnable
         
         return null;
     }
+    /*
+    private static void png2avc(String pattern, String out) throws IOException {
+        FileChannel sink = null;
+        try {
+          sink = new FileOutputStream(new File(out)).getChannel();
+          H264Encoder encoder = new H264Encoder();
+          RgbToYuv420 transform = new RgbToYuv420(0, 0);
+
+          int i;
+          for (i = 0; i < 10000; i++) {
+            File nextImg = new File(String.format(pattern, i));
+            if (!nextImg.exists())
+              continue;
+            BufferedImage rgb = ImageIO.read(nextImg);
+            Picture yuv = Picture.create(rgb.getWidth(), rgb.getHeight(), ColorSpace.YUV420);
+            transform.transform(AWTUtil.fromBufferedImage(rgb), yuv);
+            ByteBuffer buf = ByteBuffer.allocate(rgb.getWidth() * rgb.getHeight() * 3);
+
+            ByteBuffer ff = encoder.encodeFrame(buf, yuv);
+            sink.write(ff);
+          }
+          if (i == 1) {
+            System.out.println("Image sequence not found");
+            return;
+          }
+        } finally {
+          if (sink != null)
+            sink.close();
+        }
+      }
+      */
 
     public void setConnected(boolean connected) {
         this.connected = connected;

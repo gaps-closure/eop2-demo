@@ -61,6 +61,12 @@
         }
     })
     
+    function convertImageToGray(img) {
+    	  let dst = new cv.Mat();
+    	  cv.cvtColor(img, dst, cv.COLOR_RGBA2GRAY, 0);
+    	  return dst;
+    }
+    
     async function renderImage(ctx, blob) {
         //var buf = await blob.arrayBuffer();
         //var array = new Uint8ClampedArray(buf);
@@ -74,8 +80,12 @@
         var imageUrl = urlCreator.createObjectURL( blob );
         var img = document.getElementById("photo");
         img.src = imageUrl;
+        
+        //let src = cv.imread(imageUrl);
+        //const dst = convertImageToGray(src);
+        //cv.imshow('player', src);
     }
-    
+
     function send(message) {
         if (!window.WebSocket) {
             return;
