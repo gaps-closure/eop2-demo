@@ -16,9 +16,11 @@
  *  limitations under the License.
  */
 
-package com.peratonlabs.closure.eop2;
+package com.peratonlabs.closure.eop2.server;
 
 import io.undertow.Undertow;
+import io.undertow.server.HttpHandler;
+import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.websockets.core.AbstractReceiveListener;
 import io.undertow.websockets.core.BufferedTextMessage;
@@ -34,20 +36,32 @@ import static io.undertow.Handlers.websocket;
 
 import org.xnio.ChannelListener;
 
+import com.peratonlabs.closure.eop2.CameraReader;
+
 /**
  * @author Stuart Douglas
  */
 //@UndertowExample("Web Sockets")
-public class WebSocketServer 
+public class TestServer 
 {
     private CameraReader camera;
+    
+    private static HttpHandler ROUTES = new RoutingHandler()
+            .get("/",  
+//                    RoutingHandlers.plainTextHandler("GET - My Homepage"))
+            resource(new ClassPathResourceManager(TestServer.class.getClassLoader(), 
+                     TestServer.class.getPackage())).addWelcomeFiles("index.html"))
+            .get("/about", RoutingHandlers.plainTextHandler("GET - about"))
+            .post("/about", RoutingHandlers.plainTextHandler("POST - about"))
+            .get("/new*", RoutingHandlers.plainTextHandler("GET - new*"))
+            .setFallbackHandler(RoutingHandlers::notFoundHandler);
     
     private void read() {
         Undertow server = Undertow.builder()
                 .addHttpListener(8080, "localhost")
-                .setHandler(path()
+                .setHandler(
+                    path()
                         .addPrefixPath("/video", websocket(new WebSocketConnectionCallback() {
-
                             @Override
                             public void onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel) {
                                 camera = new CameraReader(channel);
@@ -55,7 +69,6 @@ public class WebSocketServer
                                 thread.start();
                                 
                                 channel.getReceiveSetter().set(new AbstractReceiveListener() {
-
                                     @Override
                                     protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
                                         WebSockets.sendText(message.getData(), channel, null);
@@ -68,13 +81,17 @@ public class WebSocketServer
                                 channel.resumeReceives();
                             }
                         }))
-                        .addPrefixPath("/", resource(new ClassPathResourceManager(WebSocketServer.class.getClassLoader(), WebSocketServer.class.getPackage())).addWelcomeFiles("index.html")))
+                        .addPrefixPath("/", resource(new ClassPathResourceManager(TestServer.class.getClassLoader()))
+                                                    .addWelcomeFiles("index.html"))
+                        
+                        .addPrefixPath("/about", RoutingHandlers.plainTextHandler("GET - about"))
+                )
                 .build();
         server.start();
     }
     
     public static void main(final String[] args) {
-        WebSocketServer server = new WebSocketServer();
+        TestServer server = new TestServer();
         server.read();
     }
 

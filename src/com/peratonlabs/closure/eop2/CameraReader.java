@@ -21,11 +21,7 @@ import java.nio.channels.FileChannel;
 
 import javax.imageio.ImageIO;
 
-import org.jcodec.codecs.h264.H264Encoder;
-import org.jcodec.common.model.ColorSpace;
-import org.jcodec.common.model.Picture;
 import org.jcodec.scale.AWTUtil;
-import org.jcodec.scale.RgbToYuv420;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
