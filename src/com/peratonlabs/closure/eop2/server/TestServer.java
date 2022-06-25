@@ -18,23 +18,27 @@
 
 package com.peratonlabs.closure.eop2.server;
 
+import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
+import io.undertow.server.handlers.resource.PathResourceManager;
+import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.websockets.core.AbstractReceiveListener;
 import io.undertow.websockets.core.BufferedTextMessage;
 import io.undertow.websockets.core.StreamSourceFrameChannel;
 import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.WebSockets;
 import io.undertow.websockets.WebSocketConnectionCallback;
+import io.undertow.websockets.WebSocketProtocolHandshakeHandler;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 
 import static io.undertow.Handlers.path;
 import static io.undertow.Handlers.resource;
 import static io.undertow.Handlers.websocket;
 
-import org.xnio.ChannelListener;
+import java.nio.file.Paths;
 
 import com.peratonlabs.closure.eop2.CameraReader;
 
@@ -46,45 +50,68 @@ public class TestServer
 {
     private CameraReader camera;
     
-    private static HttpHandler ROUTES = new RoutingHandler()
+    private HttpHandler ROUTES = new RoutingHandler()
             .get("/",  
 //                    RoutingHandlers.plainTextHandler("GET - My Homepage"))
             resource(new ClassPathResourceManager(TestServer.class.getClassLoader(), 
                      TestServer.class.getPackage())).addWelcomeFiles("index.html"))
+            .get("/video", createWebSocketHandler())
             .get("/about", RoutingHandlers.plainTextHandler("GET - about"))
             .post("/about", RoutingHandlers.plainTextHandler("POST - about"))
             .get("/new*", RoutingHandlers.plainTextHandler("GET - new*"))
             .setFallbackHandler(RoutingHandlers::notFoundHandler);
+    
+    private WebSocketProtocolHandshakeHandler createWebSocketHandler() {
+        return websocket(new WebSocketConnectionCallback() {
+            @Override
+            public void onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel) {
+                camera = new CameraReader(channel);
+                Thread thread = new Thread(camera);
+                thread.start();
+                
+                channel.getReceiveSetter().set(new AbstractReceiveListener() {
+                    @Override
+                    protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
+                        WebSockets.sendText(message.getData(), channel, null);
+                    }
+                    
+                    protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
+                        // camera.setConnected(false);
+                    }
+                });
+                channel.resumeReceives();
+            }
+        });
+    }
     
     private void read() {
         Undertow server = Undertow.builder()
                 .addHttpListener(8080, "localhost")
                 .setHandler(
                     path()
-                        .addPrefixPath("/video", websocket(new WebSocketConnectionCallback() {
-                            @Override
-                            public void onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel) {
-                                camera = new CameraReader(channel);
-                                Thread thread = new Thread(camera);
-                                thread.start();
-                                
-                                channel.getReceiveSetter().set(new AbstractReceiveListener() {
-                                    @Override
-                                    protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
-                                        WebSockets.sendText(message.getData(), channel, null);
-                                    }
-                                    
-                                    protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
-                                        // camera.setConnected(false);
-                                    }
-                                });
-                                channel.resumeReceives();
-                            }
-                        }))
+                        .addPrefixPath("/video", createWebSocketHandler())
                         .addPrefixPath("/", resource(new ClassPathResourceManager(TestServer.class.getClassLoader()))
                                                     .addWelcomeFiles("index.html"))
                         
                         .addPrefixPath("/about", RoutingHandlers.plainTextHandler("GET - about"))
+                        .addPrefixPath("/controller", Handlers.routing()
+                                .post("/{id}", exchange -> {
+                                    String id = exchange.getQueryParameters().get("id").getFirst();
+                                    System.out.println("############ " + id);
+                                }))
+                        // REST API path
+                        .addPrefixPath("/api", Handlers.routing()
+                            .get("/customers", exchange -> {System.out.println("customers");})
+                            .delete("/customers/{customerId}", exchange -> {System.out.println("delete");})
+                            .setFallbackHandler(exchange -> {System.out.println("fallback");}))
+
+                        // Redirect root path to /static to serve the index.html by default
+//                        .addExactPath("/", Handlers.redirect("/static"))
+
+                        // Serve all static files from a folder
+//                        .addPrefixPath("/static", new ResourceHandler(
+//                            new PathResourceManager(Paths.get("/path/to/www/"), 100))
+//                            .setWelcomeFiles("index.html"))                        
                 )
                 .build();
         server.start();
