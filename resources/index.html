@@ -25,22 +25,22 @@
       <div class="row">
         <input type="button" value="Connect"  id="btn" />
       </div>
-
       
     </div>
       <figure>
         <figcaption id="caption">Video Monitor <span id="websocket-latency"></span></figcaption >
-        <canvas id="player" width="640" height="480"></canvas><br />
+        <img id="jpgplayer" width="640", height="480" style="background-color:gray;"> 
+        <!-- <canvas id="player" width="640" height="480"></canvas><br />  -->
       </figure>
     </div>
 
-  <img id="photo">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script async src="js/opencv.js"></script>
   
 <script>
-    const player = document.querySelector("#player");
-    const dCtx = player.getContext('2d');
+    //const player = document.querySelector("#player");
+    //const dCtx = player.getContext('2d');
+    const jpgplayer = document.querySelector("#jpgplayer");
 
     var socket;
     const caption = document.getElementById("caption");
@@ -68,22 +68,20 @@
     }
     
     async function renderImage(ctx, blob) {
-        //var buf = await blob.arrayBuffer();
-        //var array = new Uint8ClampedArray(buf);
+        var buf = await blob.arrayBuffer();
+        var array = new Uint8ClampedArray(buf);
   
-        //let mat = cv.matFromArray(480, 640, cv.CV_8UC3, array);
-        //cv.imshow('player', mat);
-        
+        let mat = cv.matFromArray(480, 640, cv.CV_8UC3, array);
+        cv.imshow('player', mat);
+    }
+    
+    async function renderJpgImage(blob) {
+    	  //var buf = await blob.arrayBuffer();
         //var arrayBufferView = new Uint8Array( buf );
         //var blobx = new Blob( [ arrayBufferView ], { type: "image/jpeg" } );
         var urlCreator = window.URL || window.webkitURL;
         var imageUrl = urlCreator.createObjectURL( blob );
-        var img = document.getElementById("photo");
-        img.src = imageUrl;
-        
-        //let src = cv.imread(imageUrl);
-        //const dst = convertImageToGray(src);
-        //cv.imshow('player', src);
+        jpgplayer.src = imageUrl;
     }
 
     function send(message) {
@@ -105,10 +103,9 @@
         }
         socket = new WebSocket("ws://localhost:8080/video");
         socket.onmessage = function(m) {
-            // console.log("Received data from websocket: " + m.data);
-          
             let blob = m.data;
-            renderImage(dCtx, blob);
+            //renderImage(dCtx, blob);
+            renderJpgImage(blob);
         };
         
         socket.onopen = function(event) {
