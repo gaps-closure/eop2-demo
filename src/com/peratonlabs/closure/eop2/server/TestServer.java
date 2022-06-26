@@ -20,6 +20,7 @@ package com.peratonlabs.closure.eop2.server;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
+import io.undertow.io.Receiver.FullStringCallback;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
@@ -41,6 +42,11 @@ import static io.undertow.Handlers.websocket;
 import java.nio.file.Paths;
 
 import com.peratonlabs.closure.eop2.CameraReader;
+
+import static io.undertow.util.Headers.CONTENT_TYPE;
+import static io.undertow.util.StatusCodes.CREATED;
+import static io.undertow.util.StatusCodes.NO_CONTENT;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * @author Stuart Douglas
@@ -98,7 +104,11 @@ public class TestServer
                                 .post("/{id}", exchange -> {
                                     String id = exchange.getQueryParameters().get("id").getFirst();
                                     System.out.println("############ " + id);
-                                }))
+                                })
+                                )
+                        .addPrefixPath("/users", Handlers.routing()
+                                .post("/{id}", createUser())
+                                )
                         // REST API path
                         .addPrefixPath("/api", Handlers.routing()
                             .get("/customers", exchange -> {System.out.println("customers");})
@@ -115,6 +125,24 @@ public class TestServer
                 )
                 .build();
         server.start();
+    }
+    
+    private class User {}
+    
+    private HttpHandler createUser () {
+        FullStringCallback callback = (exchange, payload) -> {
+//            User dto = JsonUtil.fromJson(payload, User.class);
+//            User user = service.create(dto);
+//
+//            String response = JsonUtil.toJson(user);
+            System.out.println(payload);
+            String response = "XXXX";
+            exchange.setStatusCode(CREATED);
+            exchange.getResponseHeaders().put(CONTENT_TYPE, "application/json");
+            exchange.getResponseSender().send(response, UTF_8);
+        };
+
+        return (exchange) -> exchange.getRequestReceiver().receiveFullString(callback, UTF_8);
     }
     
     public static void main(final String[] args) {
