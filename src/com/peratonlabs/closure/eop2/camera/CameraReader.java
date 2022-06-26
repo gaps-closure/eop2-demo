@@ -9,7 +9,7 @@
  *
  * Jun 22, 2022
  */
-package com.peratonlabs.closure.eop2;
+package com.peratonlabs.closure.eop2.camera;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;

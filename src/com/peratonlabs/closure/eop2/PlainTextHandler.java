@@ -9,23 +9,24 @@
  *
  * Jun 25, 2022
  */
-package com.peratonlabs.closure.eop2.server;
+package com.peratonlabs.closure.eop2;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
 
-public class RoutingHandlers {
+public class PlainTextHandler implements HttpHandler {
 
-    public static HttpHandler plainTextHandler(String value) {
+    private final String value;
 
-        return new PlainTextHandler(value);
+    public PlainTextHandler(String value) {
+        this.value = value;
     }
 
-    public static void notFoundHandler(HttpServerExchange exchange) {
+    @Override
+    public void handleRequest(HttpServerExchange exchange) {
 
-        exchange.setStatusCode(404);
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
-        exchange.getResponseSender().send("Page Not Found");
+        exchange.getResponseSender().send(value + "\n");
     }
 }

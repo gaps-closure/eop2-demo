@@ -3,4 +3,4 @@ curl -i -X GET http://rest-api.io/items/5069b47aa892630aae059584
 curl -i -X DELETE http://rest-api.io/items/5069b47aa892630aae059584
 curl -i -X POST -H 'Content-Type: application/json' -d '{"name": "New item", "year": "2009"}' http://rest-api.io/items
 curl -i -X POST -H 'Content-Type: application/x-www-form-urlencoded' -d 'xxxx' http://localhost:8080/controller/xxx
-curl -i -X POST -H 'Content-Type: application/json' -d '{"name": "New item", "year": "2009"}' http://localhost:8080/request
+curl -i -X POST -H 'Content-Type: application/json' -d '{"frameRate": 30, "delay": 10}' http://localhost:8080/request

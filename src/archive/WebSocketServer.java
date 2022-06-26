@@ -16,7 +16,7 @@
  *  limitations under the License.
  */
 
-package com.peratonlabs.closure.eop2.server;
+package archive;
 
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
@@ -36,7 +36,8 @@ import static io.undertow.Handlers.websocket;
 
 import org.xnio.ChannelListener;
 
-import com.peratonlabs.closure.eop2.CameraReader;
+import com.peratonlabs.closure.eop2.RoutingHandlers;
+import com.peratonlabs.closure.eop2.camera.CameraReader;
 
 /**
  * @author Stuart Douglas
