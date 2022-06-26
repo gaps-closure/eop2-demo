@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html>
 <head>
   <title>CLOSURE Demo</title>
   <meta charset="utf-8">
@@ -9,73 +10,63 @@
 <body>
   <header>
     <h1><a href="index.html">CLOSURE Demo</a></h1>
-    <!-- <p>Send video frames using a websocket</p> -->
   </header>
-  <!--  <form onsubmit="return false;"> -->
-  <!--   <input type="text" name="message" value="Hello, World!"/> -->
-  <!--    <input type="button" value="Send Web Socket Data" onclick="send(this.form.message.value)"/> -->
-  <!--  </form> -->
   
   <div class="row">
     <div class="col">
       <div class="row">
 			  <form id="formElem">
 			    <div class="row">
-               <label style="text-align: right;">Delay (ms)</label>
-			          <input type="text" id="delay" name="delay" value="0">
+            <label style="width: 200px; text-align: right; margin-right: 0.4cm;">Delay (ms)</label>
+			       <input type="text" id="delay" name="delay" value="0" style="width: 20%;">
+          </div>
+           <div class="row">
+             <label style="width: 200px; text-align: right; margin-right: 0.4cm;">Frame Rate (fps)</label>
+             <input type="text" id="frameRate" name="frameRate" value="30" style="width: 20%;">
            </div>
            <div class="row">
-             <label style="text-align: right;">Frame Rate (fps)</label>
-             <input type="text" id="frameRate" name="frameRate" value="30">
-           </div>
-           <div class="row">
-             <label style="text-align: right;">Blur</label>
+             <label style="width: 250x; text-align: right; margin-right: 0.4cm;">Blur</label>
                <label class="switch">
                  <input type="checkbox" id="blur" name="blur" value="true">
                  <span class="slider round"></span>
                </label>
            </div>
 		      <div class="row">
-             <label style="text-align: right;">Color</label>
+             <label style="width: 250x; text-align: right; margin-right: 0.4cm;">Color</label>
 							<label class="switch">
 							  <input type="checkbox" id="color" name="color" value="true" checked>
 							  <span class="slider round"></span>
 							</label>
            </div>
            <div class="row">
-             <label style="text-align: right;">Scale</label>
+             <label style="width: 250x; text-align: right; margin-right: 0.4cm;">Scale</label>
                <label class="switch">
                  <input type="checkbox" id="scale" name="scale" value="true">
                  <span class="slider round"></span>
                </label>
            </div>
            <div class="row">
-             <label style="text-align: right;">Scale (%)</label>
+             <label style="width: 250x; text-align: right; margin-right: 0.4cm;">Scale (%)</label>
              <input type="range" min="1" max="100" value="100" id="myRange" name="scalePercentage"
                       oninput="this.nextElementSibling.value = this.value" >
              <output>100</output>
            </div>
                                      
-			    <div class="row">
+			     <div class="row">
 			       <label></label>
-             <input type="submit" value="Request"/>
+             <input type="submit" value="Play"  id="btn" height="48" 
+                   style="height: 40px; width: 100px; background: url(image/play.png) no-repeat;"/>
            </div>
-              
-		      <div class="row">
-		        <label></label>
-            <!-- <label id="caption" style="text-align: right;">Stopped</label >   -->
-		        <input type="button" value="Play"  id="btn" height="48" style="background: url(image/play.png) no-repeat;""/>
-		      </div>
 			  </form>
 			</div>
     </div>
     <div class="col">
       <figure>
-        <img id="jpgplayer" width="640", height="480" style="background-color:gray;"> 
+        <img id="jpgplayer" width="640" height="480" style="background-color:gray;"> 
         <!-- <canvas id="player" width="640" height="480"></canvas><br />  -->
       </figure>
     </div>
-
+  </div>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script async src="js/opencv.js"></script>
   
@@ -88,7 +79,8 @@
     //const caption = document.getElementById("caption");
     const btn = document.getElementById("btn");
     
-    btn.addEventListener("click", () => {
+    // btn.addEventListener("click", () => {
+    function toggleButton() {
         if (btn.value === "Play") {
             btn.value = "Stop";
             btn.style.background="url('image/pause.png') no-repeat";
@@ -103,7 +95,7 @@
             // btn.style.background='#ff0000';
             disconnect();
         }
-    })
+    }
     
     function convertImageToGray(img) {
     	  let dst = new cv.Mat();
@@ -175,6 +167,8 @@
     }
     
     formElem.onsubmit = async (e) => {
+    	  toggleButton()
+    
         e.preventDefault();
 
         fetch('http://localhost:8080/request', {
