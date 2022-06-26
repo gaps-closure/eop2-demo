@@ -106,8 +106,8 @@ public class TestServer
                                     System.out.println("############ " + id);
                                 })
                                 )
-                        .addPrefixPath("/users", Handlers.routing()
-                                .post("/{id}", createUser())
+                        .addPrefixPath("/request", Handlers.routing()
+                                .post("/{request}", createRequest())
                                 )
                         // REST API path
                         .addPrefixPath("/api", Handlers.routing()
@@ -129,7 +129,7 @@ public class TestServer
     
     private class User {}
     
-    private HttpHandler createUser () {
+    private HttpHandler createRequest() {
         FullStringCallback callback = (exchange, payload) -> {
 //            User dto = JsonUtil.fromJson(payload, User.class);
 //            User user = service.create(dto);
