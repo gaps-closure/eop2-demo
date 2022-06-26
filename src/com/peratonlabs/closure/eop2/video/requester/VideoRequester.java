@@ -20,6 +20,7 @@ public class VideoRequester
 {
     public static HttpHandler createRequest() {
         FullStringCallback callback = (exchange, payload) -> {
+            System.out.println(payload);
             Request req = Request.fromJson(payload);
 
             String response = req.toJson();
