@@ -58,12 +58,13 @@
                                      
 			    <div class="row">
 			       <label></label>
-             <input type="submit" value="Submit"/>
+             <input type="submit" value="Request"/>
            </div>
               
 		      <div class="row">
-            <label id="caption" style="text-align: right;">Stopped</label >
-		        <input type="button" value="Play"  id="btn" />
+		        <label></label>
+            <!-- <label id="caption" style="text-align: right;">Stopped</label >   -->
+		        <input type="button" value="Play"  id="btn" height="48" style="background: url(image/play.png) no-repeat;""/>
 		      </div>
 			  </form>
 			</div>
@@ -84,19 +85,21 @@
     const jpgplayer = document.querySelector("#jpgplayer");
 
     var socket;
-    const caption = document.getElementById("caption");
+    //const caption = document.getElementById("caption");
     const btn = document.getElementById("btn");
     
     btn.addEventListener("click", () => {
         if (btn.value === "Play") {
             btn.value = "Stop";
-            caption.innerHTML = "Playing";
+            btn.style.background="url('image/pause.png') no-repeat";
+            //caption.innerHTML = "Playing";
             //btn.style.background='#00ff00';
             connect();
         }
         else {
             btn.value= "Play";
-            caption.innerHTML = "Stopped";
+            btn.style.background="url('image/play.png') no-repeat";
+            //caption.innerHTML = "Stopped";
             // btn.style.background='#ff0000';
             disconnect();
         }
@@ -157,7 +160,8 @@
             console.log("Web Socket closed.");
               
             btn.value= "Play";
-            caption.innerHTML = "Stopped";
+            btn.style.background="url('image/play.png') no-repeat";
+            //caption.innerHTML = "Stopped";
         };
         
         socket.onerror = function(event) {

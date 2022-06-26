@@ -19,6 +19,7 @@ button {
     font-family: Courier, 'Courier New', monospace;
     font-size: 1rem;
     padding: 0.5em 1em;
+    height: 48px;
 }
 
 button:active, button:hover {
@@ -105,6 +106,20 @@ input[type=text] {
 
 input[type=range] {
   width: 35%;
+}
+
+input[type=button] {
+    height: 40px;
+    width: 96px;
+    background-size: cover;
+}
+
+input[type=submit] {
+    height: 40px;
+    width: 96px;
+    background-size: cover;
+    background: #eeeeee;
+    color: #000;
 }
 
 /* The switch - the box around the slider */
