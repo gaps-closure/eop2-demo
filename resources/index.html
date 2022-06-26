@@ -16,18 +16,54 @@
   <!--    <input type="button" value="Send Web Socket Data" onclick="send(this.form.message.value)"/> -->
   <!--  </form> -->
   
-  <form id="formElem">
-  <input type="text" name="delay" value="10">
-  <input type="text" name="frameRate" value="30">
-  <input type="submit">
-</form>
-  
   <div class="row">
     <div class="col">
       <div class="row">
-        <input type="button" value="Connect"  id="btn" />
+				  <form id="formElem">
+				    <div class="row">
+                <label>Delay</label>
+ 			          <input type="text" id="delay" name="delay" value="0">
+            </div>
+            <div class="row">
+              <label>Frame Rate</label>
+              <input type="text" id="frameRate" name="frameRate" value="30">
+            </div>
+            <div class="row">
+              <label>Blur</label>
+                <label class="switch">
+                  <input type="checkbox" id="blur" name="blur" value="false">
+                  <span class="slider round"></span>
+                </label>
+            </div>
+			      <div class="row">
+              <label>Color</label>
+								<label class="switch">
+								  <input type="checkbox" id="color" name="color" value="true" checked>
+								  <span class="slider round"></span>
+								</label>
+            </div>
+            <div class="row">
+              <label>Scale</label>
+                <label class="switch">
+                  <input type="checkbox" id="scale" name="scale" value="false">
+                  <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="row">
+              <label>Scale</label>
+              <input type="range" min="1" max="100" value="100" id="myRange" name="scalePercentage"
+                       oninput="this.nextElementSibling.value = this.value" >
+              <output>100</output>
+            </div>
+                                      
+				    <input type="submit">
+				            
+      <div class="row">
+        <input type="button" value="Play"  id="btn" />
       </div>
-      
+				    
+			  </form>
+			</div>
     </div>
       <figure>
         <figcaption id="caption">Video Monitor <span id="websocket-latency"></span></figcaption >
@@ -49,14 +85,14 @@
     const btn = document.getElementById("btn");
     
     btn.addEventListener("click", () => {
-        if (btn.value === "Connect") {
-            btn.value = "Disconnect";
+        if (btn.value === "Play") {
+            btn.value = "Stop";
             caption.innerHTML = "Live View";
             //btn.style.background='#00ff00';
             connect();
         }
         else {
-            btn.value= "Connect";
+            btn.value= "Play";
             caption.innerHTML = "View Stopped";
             // btn.style.background='#ff0000';
             disconnect();
@@ -117,7 +153,7 @@
         socket.onclose = function(event) {
             console.log("Web Socket closed.");
               
-            btn.value= "Connect";
+            btn.value= "Play";
             caption.innerHTML = "View Stopped";
         };
         

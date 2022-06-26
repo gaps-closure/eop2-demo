@@ -7,10 +7,10 @@ public class Request
 {
     private Integer frameRate;
     private long delay;
-    private boolean isGrayScale;
-    private boolean addBlur;
-    private boolean scaleImage;
-    private Integer imageScale;
+    private boolean color;
+    private boolean blur;
+    private boolean scale;
+    private Integer scalePercentage;
     
     private static Gson gson = new GsonBuilder()
 //            .registerTypeAdapterFactory(typeAdapterFactory)
@@ -41,35 +41,35 @@ public class Request
         this.delay = delay;
     }
 
-    public boolean isGrayScale() {
-        return isGrayScale;
+    public boolean isColor() {
+        return color;
     }
 
-    public void setGrayScale(boolean isGrayScale) {
-        this.isGrayScale = isGrayScale;
+    public void setColor(boolean color) {
+        this.color = color;
     }
 
-    public boolean isAddBlur() {
-        return addBlur;
+    public boolean isBlur() {
+        return blur;
     }
 
-    public void setAddBlur(boolean addBlur) {
-        this.addBlur = addBlur;
+    public void setBlur(boolean blur) {
+        this.blur = blur;
     }
 
-    public boolean isScaleImage() {
-        return scaleImage;
+    public boolean isScale() {
+        return scale;
     }
 
-    public void setScaleImage(boolean scaleImage) {
-        this.scaleImage = scaleImage;
+    public void setScale(boolean scale) {
+        this.scale = scale;
     }
 
-    public Integer getImageScale() {
-        return imageScale;
+    public Integer getScalePercentage() {
+        return scalePercentage;
     }
 
-    public void setImageScale(Integer imageScale) {
-        this.imageScale = imageScale;
+    public void setScalePercentage(Integer scalePercentage) {
+        this.scalePercentage = scalePercentage;
     }
 }
