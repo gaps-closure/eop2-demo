@@ -10,7 +10,7 @@
 package com.peratonlabs.closure.eop2.video.requester;
 
 import static io.undertow.util.Headers.CONTENT_TYPE;
-import static io.undertow.util.StatusCodes.CREATED;
+import static io.undertow.util.StatusCodes.OK;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import io.undertow.io.Receiver.FullStringCallback;
@@ -27,7 +27,7 @@ public class VideoRequester
             
             System.out.println(response);
             
-            exchange.setStatusCode(CREATED);
+            exchange.setStatusCode(OK);
             exchange.getResponseHeaders().put(CONTENT_TYPE, "application/json");
             exchange.getResponseSender().send(response, UTF_8);
         };

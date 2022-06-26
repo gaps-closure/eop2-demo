@@ -18,57 +18,58 @@
   
   <div class="row">
     <div class="col">
-      <br> <br>
       <div class="row">
 			  <form id="formElem">
 			    <div class="row">
-               <label>Delay</label>
+               <label style="text-align: right;">Delay (ms)</label>
 			          <input type="text" id="delay" name="delay" value="0">
            </div>
            <div class="row">
-             <label>Frame Rate</label>
+             <label style="text-align: right;">Frame Rate (fps)</label>
              <input type="text" id="frameRate" name="frameRate" value="30">
            </div>
            <div class="row">
-             <label>Blur</label>
+             <label style="text-align: right;">Blur</label>
                <label class="switch">
                  <input type="checkbox" id="blur" name="blur" value="true">
                  <span class="slider round"></span>
                </label>
            </div>
 		      <div class="row">
-             <label>Color</label>
+             <label style="text-align: right;">Color</label>
 							<label class="switch">
 							  <input type="checkbox" id="color" name="color" value="true" checked>
 							  <span class="slider round"></span>
 							</label>
            </div>
            <div class="row">
-             <label>Scale</label>
+             <label style="text-align: right;">Scale</label>
                <label class="switch">
                  <input type="checkbox" id="scale" name="scale" value="true">
                  <span class="slider round"></span>
                </label>
            </div>
            <div class="row">
-             <label>Scale</label>
+             <label style="text-align: right;">Scale (%)</label>
              <input type="range" min="1" max="100" value="100" id="myRange" name="scalePercentage"
                       oninput="this.nextElementSibling.value = this.value" >
              <output>100</output>
            </div>
                                      
 			    <div class="row">
+			       <label></label>
              <input type="submit" value="Submit"/>
            </div>
               
 		      <div class="row">
+            <label id="caption" style="text-align: right;">Stopped</label >
 		        <input type="button" value="Play"  id="btn" />
 		      </div>
 			  </form>
 			</div>
     </div>
+    <div class="col">
       <figure>
-        <figcaption id="caption">Video Monitor <span id="websocket-latency"></span></figcaption >
         <img id="jpgplayer" width="640", height="480" style="background-color:gray;"> 
         <!-- <canvas id="player" width="640" height="480"></canvas><br />  -->
       </figure>
@@ -89,13 +90,13 @@
     btn.addEventListener("click", () => {
         if (btn.value === "Play") {
             btn.value = "Stop";
-            caption.innerHTML = "Live View";
+            caption.innerHTML = "Playing";
             //btn.style.background='#00ff00';
             connect();
         }
         else {
             btn.value= "Play";
-            caption.innerHTML = "View Stopped";
+            caption.innerHTML = "Stopped";
             // btn.style.background='#ff0000';
             disconnect();
         }
@@ -156,7 +157,7 @@
             console.log("Web Socket closed.");
               
             btn.value= "Play";
-            caption.innerHTML = "View Stopped";
+            caption.innerHTML = "Stopped";
         };
         
         socket.onerror = function(event) {
@@ -177,7 +178,7 @@
             body: JSON.stringify(Object.fromEntries(new FormData(formElem)))
         })
         .then((result) => {
-            if (result.status != 201) { 
+            if (result.status != 200 && result.status != 201) { 
             	  throw new Error("Bad Server Response " + result.status); 
         	  }
             return result.text();

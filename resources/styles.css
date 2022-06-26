@@ -63,7 +63,7 @@ canvas, video {
 .row {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: left;
 }
 
 .row > * {
@@ -92,7 +92,19 @@ h1 {
   text-align: center;
 }
 
-label { display: block; width: 100px; }
+label { 
+	display: block; 
+	width: 200px;
+	text-align: right;
+}
+
+input[type=text] {
+  width: 20%;
+}
+
+input[type=range] {
+  width: 40%;
+}
 
 /* The switch - the box around the slider */
 .switch {
