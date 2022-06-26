@@ -96,6 +96,7 @@ label {
 	display: block; 
 	width: 200px;
 	text-align: right;
+	margin-right: 0.4cm;
 }
 
 input[type=text] {
@@ -103,7 +104,7 @@ input[type=text] {
 }
 
 input[type=range] {
-  width: 40%;
+  width: 35%;
 }
 
 /* The switch - the box around the slider */
