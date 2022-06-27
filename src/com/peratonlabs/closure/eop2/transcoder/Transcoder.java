@@ -8,7 +8,6 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Transcoder implements Runnable
 {
@@ -16,7 +15,6 @@ public class Transcoder implements Runnable
     
     private Request request;
     private Thread worker;
-//    private AtomicBoolean running = new AtomicBoolean(true);
     private LinkedBlockingQueue<Mat> queue = new LinkedBlockingQueue<Mat>();
     
     private Transcoder(Request request) {
@@ -79,7 +77,6 @@ public class Transcoder implements Runnable
     }
     
     public void interrupt() {
-//        running.set(false);
         worker.interrupt();
     }
     
@@ -88,10 +85,6 @@ public class Transcoder implements Runnable
         worker.start();
     }
  
-    public void stop() {
-//        running.set(false);
-    }
-
     @Override
     public void run() {
         while (true) {
@@ -112,6 +105,9 @@ public class Transcoder implements Runnable
                 byte[] memBytes = mem.toArray();
 
                 WebSocketServer.send(request.getId(), memBytes);
+                
+                if (request.getDelay() > 0)
+                    Thread.sleep(request.getDelay());
             }
             catch (InterruptedException e) {
                 break;
