@@ -83,7 +83,7 @@ public class Transcoder
             Imgcodecs.imencode(".jpg", mmm, mem);
             byte[] memBytes = mem.toArray();
 
-            WebSocketServer.broadcast(memBytes);//TODO: not broadcast
+            WebSocketServer.send(request.getId(), memBytes);
             
 //            System.out.println("Transcoder: " + transcoder.request.getId());
         }

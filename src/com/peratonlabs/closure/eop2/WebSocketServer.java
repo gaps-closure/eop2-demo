@@ -72,4 +72,19 @@ public class WebSocketServer
             }
         }
     }
+    
+    public static void send(String id, byte[] memBytes) {
+        WebSocketChannel channel = channels.get(id);
+        if (channel == null) {
+            System.err.println("no channel for " + id);
+            return;
+        }
+        try {
+            WebSockets.sendBinaryBlocking(ByteBuffer.wrap(memBytes), channel);
+        }
+        catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 }
