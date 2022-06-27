@@ -36,23 +36,12 @@ import static io.undertow.Handlers.websocket;
 
 import org.xnio.ChannelListener;
 
-import com.peratonlabs.closure.eop2.RoutingHandlers;
 import com.peratonlabs.closure.eop2.camera.CameraReader;
 
-/**
- * @author Stuart Douglas
- */
 //@UndertowExample("Web Sockets")
 public class WebSocketServer 
 {
     private CameraReader camera;
-    
-    private static HttpHandler ROUTES = new RoutingHandler()
-            .get("/", RoutingHandlers.plainTextHandler("GET - My Homepage"))
-            .get("/about", RoutingHandlers.plainTextHandler("GET - about"))
-            .post("/about", RoutingHandlers.plainTextHandler("POST - about"))
-            .get("/new*", RoutingHandlers.plainTextHandler("GET - new*"))
-            .setFallbackHandler(RoutingHandlers::notFoundHandler);
     
     private void read() {
         Undertow server = Undertow.builder()
@@ -62,7 +51,7 @@ public class WebSocketServer
                         .addPrefixPath("/video", websocket(new WebSocketConnectionCallback() {
                             @Override
                             public void onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel) {
-                                camera = new CameraReader(channel);
+                                camera = new CameraReader();
                                 Thread thread = new Thread(camera);
                                 thread.start();
                                 

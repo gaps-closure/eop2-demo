@@ -13,6 +13,10 @@ import static io.undertow.util.Headers.CONTENT_TYPE;
 import static io.undertow.util.StatusCodes.OK;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import org.jboss.logging.Logger;
+
+import com.peratonlabs.closure.eop2.video.manager.VideoManager;
+
 import io.undertow.io.Receiver.FullStringCallback;
 import io.undertow.server.HttpHandler;
 
@@ -23,6 +27,8 @@ public class VideoRequester
             System.out.println(payload);
             Request req = Request.fromJson(payload);
 
+            VideoManager.handleRequest(req);
+            
             String response = req.toJson();
             
             System.out.println(response);

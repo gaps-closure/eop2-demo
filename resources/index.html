@@ -54,6 +54,7 @@
            
            <div class="row">
              <input type="hidden" value="closure" id="id" name="id">
+             <input type="hidden" value="start" id="command" name="command">
            </div>
                                      
 			     <div class="row">
@@ -88,6 +89,7 @@
     function toggleButton() {
         if (btn.value === "Play") {
             id.value = uid();
+            command.value = "start";
 
             btn.value = "Stop";
             btn.style.background="url('image/pause.png') no-repeat";
@@ -96,6 +98,8 @@
             connect();
         }
         else {
+        	  command.value = "stop";	
+        
             btn.value= "Play";
             btn.style.background="url('image/play.png') no-repeat";
             //caption.innerHTML = "Stopped";
@@ -153,6 +157,7 @@
         
         socket.onopen = function(event) {
             console.log("Web Socket opened!");
+            socket.send(id.value);
         };
         
         socket.onclose = function(event) {

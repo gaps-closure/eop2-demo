@@ -22,19 +22,8 @@ import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
 public class ClosureServer 
 {
-    private HttpHandler ROUTES = new RoutingHandler()
-            .get("/",  
-//                    RoutingHandlers.plainTextHandler("GET - My Homepage"))
-            resource(new ClassPathResourceManager(ClosureServer.class.getClassLoader(), 
-                     ClosureServer.class.getPackage())).addWelcomeFiles("index.html"))
-            .get("/video", VideoManager.createWebSocketHandler())
-            .get("/about", RoutingHandlers.plainTextHandler("GET - about"))
-            .post("/about", RoutingHandlers.plainTextHandler("POST - about"))
-            .get("/new*", RoutingHandlers.plainTextHandler("GET - new*"))
-            .setFallbackHandler(RoutingHandlers::notFoundHandler);
-    
     private HttpHandler handler = new PathHandler()
-            .addPrefixPath("/video", VideoManager.createWebSocketHandler())
+            .addPrefixPath("/video", WebSocketServer.createWebSocketHandler())
             .addPrefixPath("/", resource(new ClassPathResourceManager(ClosureServer.class.getClassLoader()))
                                         .addWelcomeFiles("index.html"))
             

@@ -13,15 +13,8 @@ package com.peratonlabs.closure.eop2.camera;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-
-import javax.imageio.ImageIO;
-
-import org.jcodec.scale.AWTUtil;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
@@ -29,19 +22,13 @@ import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
 
-import io.undertow.websockets.core.WebSocketChannel;
-import io.undertow.websockets.core.WebSockets;
+import com.peratonlabs.closure.eop2.WebSocketServer;
 
 public class CameraReader implements Runnable
 {
-    private WebSocketChannel channel;
     private boolean connected = true;
     
     public CameraReader() {
-    }
-    
-    public CameraReader(WebSocketChannel channel) {
-        this.channel = channel;
     }
     
     @Override
@@ -52,7 +39,7 @@ public class CameraReader implements Runnable
         VideoCapture capture = new VideoCapture(0);
         
         // Reading the next video frame from the camera
-        while (channel == null || !channel.isCloseFrameReceived()) {
+        while (connected) {
             Mat mat = new Mat();
             capture.read(mat);
             
@@ -73,13 +60,7 @@ public class CameraReader implements Runnable
 //          Mat m2 = new Mat(mat.rows(), mat.cols(), mat.type());
 //          m2.put(0,0, bytes);
 
-            try {
-                if (channel != null && !channel.isCloseFrameReceived())
-                    WebSockets.sendBinaryBlocking(ByteBuffer.wrap(memBytes), channel);
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
+            WebSocketServer.broadcast(memBytes);
             
             HighGui.imshow("Image", mat);
             HighGui.waitKey(1);

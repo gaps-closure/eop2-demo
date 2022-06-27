@@ -12,6 +12,7 @@ package com.peratonlabs.closure.eop2.video.manager;
 import static io.undertow.Handlers.websocket;
 
 import com.peratonlabs.closure.eop2.camera.CameraReader;
+import com.peratonlabs.closure.eop2.video.requester.Request;
 
 import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.WebSocketProtocolHandshakeHandler;
@@ -26,26 +27,17 @@ public class VideoManager
 {
     private static CameraReader camera;
     
-    public static WebSocketProtocolHandshakeHandler createWebSocketHandler() {
-        return websocket(new WebSocketConnectionCallback() {
-            @Override
-            public void onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel) {
-                camera = new CameraReader(channel);
+    public static void handleRequest(Request request) {
+        switch(request.getCommand()) {
+        case "start":
+            if (camera == null) {
+                camera = new CameraReader();
                 Thread thread = new Thread(camera);
                 thread.start();
-                
-                channel.getReceiveSetter().set(new AbstractReceiveListener() {
-                    @Override
-                    protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
-                        WebSockets.sendText(message.getData(), channel, null);
-                    }
-                    
-                    protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
-                        // camera.setConnected(false);
-                    }
-                });
-                channel.resumeReceives();
             }
-        });
+            break;
+        case "stop":
+            break;
+        }
     }
 }
