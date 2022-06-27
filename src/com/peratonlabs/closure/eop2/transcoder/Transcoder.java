@@ -51,16 +51,9 @@ public class Transcoder
     }
     
     private Mat changeImageScale(Mat frame, Request request) {
-        Integer width = (int) frame.size().width;
-        Integer height = (int) frame.size().height;
-        Integer newWidth = (int) (width * request.getScalePercentage() / 100);
-        Integer newHeight = (int) (height * request.getScalePercentage() / 100);
+        double scale = request.getScalePercentage() / (double) 100;
+        Imgproc.resize(frame, frame, new Size(0, 0), scale, scale, Imgproc.INTER_AREA);
 
-        Size newSz = new Size(newWidth, newHeight);
-        Imgproc.resize(frame, frame, newSz);
-
-        Size sz = new Size(width, height);
-        Imgproc.resize(frame, frame, sz);
         return frame;
     }
     
