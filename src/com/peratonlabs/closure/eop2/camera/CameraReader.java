@@ -23,7 +23,6 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
 
-import com.peratonlabs.closure.eop2.WebSocketServer;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 
 public class CameraReader implements Runnable

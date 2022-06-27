@@ -7,46 +7,39 @@ import com.peratonlabs.closure.eop2.video.requester.Request;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import java.util.HashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Transcoder
+public class Transcoder implements Runnable
 {
     private static HashMap<String, Transcoder> clients = new HashMap<String, Transcoder>();
     
     private Request request;
-
+    private Thread worker;
+//    private AtomicBoolean running = new AtomicBoolean(true);
+    private LinkedBlockingQueue<Mat> queue = new LinkedBlockingQueue<Mat>();
+    
     private Transcoder(Request request) {
         this.request = request;
     }
     
     public static void addClient(Request request) {
         Transcoder transcoder = new Transcoder(request);
+        transcoder.start();
+        
         clients.put(request.getId(), transcoder);
     }
     
     public static void removeClient(Request request) {
-        clients.remove(request.getId());
+        Transcoder transcoder = clients.remove(request.getId());
+        transcoder.interrupt();
+        
         WebSocketServer.close(request.getId());
     }
 
     public static void broadcast(Mat mat) {
         for (Transcoder transcoder : clients.values()) {
-            Request request = transcoder.request;
-            
-            Mat mmm = mat.clone();
-            if (!request.isColor())
-                mmm = transcoder.convertGrayScale(mmm);
-            
-            if (request.isBlur())
-                mmm = transcoder.addBlur(mmm, true);
-            
-            if (request.isScale())
-                mmm = transcoder.changeImageScale(mmm, request);
-            
-            MatOfByte mem = new MatOfByte();
-            Imgcodecs.imencode(".jpg", mmm, mem);
-            byte[] memBytes = mem.toArray();
-
-            WebSocketServer.send(request.getId(), memBytes);
+            transcoder.queue.add(mat);
         }
     }
     
@@ -83,5 +76,46 @@ public class Transcoder
         Imgproc.GaussianBlur(mask, mask, new Size(55, 55), 55); // or any other processing
         
         return frame;
+    }
+    
+    public void interrupt() {
+//        running.set(false);
+        worker.interrupt();
+    }
+    
+    public void start() {
+        worker = new Thread(this);
+        worker.start();
+    }
+ 
+    public void stop() {
+//        running.set(false);
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                Mat mat = queue.take();
+                Mat mmm = mat.clone();
+                if (!request.isColor())
+                    mmm = convertGrayScale(mmm);
+                
+                if (request.isBlur())
+                    mmm = addBlur(mmm, true);
+                
+                if (request.isScale())
+                    mmm = changeImageScale(mmm, request);
+                
+                MatOfByte mem = new MatOfByte();
+                Imgcodecs.imencode(".jpg", mmm, mem);
+                byte[] memBytes = mem.toArray();
+
+                WebSocketServer.send(request.getId(), memBytes);
+            }
+            catch (InterruptedException e) {
+                break;
+            }
+        }
     }
 }
