@@ -48,12 +48,7 @@ public class WebSocketServer
                     protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
                         // camera.setConnected(false);
                         String id = ids.get(webSocketChannel);
-                        if (id == null)
-                            System.err.println("no such channel");
-                        else {
-                            channels.remove(id);
-                        }
-                        ids.remove(webSocketChannel);
+                        close(id);
                     }
                 });
                 channel.resumeReceives();
@@ -87,4 +82,17 @@ public class WebSocketServer
             e.printStackTrace();
         }
     }
+    
+    public static void close(String id) {
+        if (id == null) {
+            System.err.println("no such channel");
+            return;
+        }
+
+        WebSocketChannel channel = channels.remove(id);
+        ids.remove(channel);
+        channels.remove(id);
+    }
 }
+
+    
