@@ -9,34 +9,31 @@
  */
 package com.peratonlabs.closure.eop2.video.manager;
 
-import static io.undertow.Handlers.websocket;
+import java.util.HashSet;
 
 import com.peratonlabs.closure.eop2.camera.CameraReader;
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
-import io.undertow.websockets.WebSocketConnectionCallback;
-import io.undertow.websockets.WebSocketProtocolHandshakeHandler;
-import io.undertow.websockets.core.AbstractReceiveListener;
-import io.undertow.websockets.core.BufferedTextMessage;
-import io.undertow.websockets.core.StreamSourceFrameChannel;
-import io.undertow.websockets.core.WebSocketChannel;
-import io.undertow.websockets.core.WebSockets;
-import io.undertow.websockets.spi.WebSocketHttpExchange;
-
 public class VideoManager
 {
     private static CameraReader camera;
-    
+    private static HashSet<String> clients = new HashSet<String>();
+
     public static void handleRequest(Request request) {
         switch(request.getCommand()) {
         case "start":
             if (camera == null) {
                 camera = new CameraReader();
-                Thread thread = new Thread(camera);
-                thread.start();
+                camera.start();
             }
+            clients.add(request.getId());
             break;
         case "stop":
+            clients.remove(request.getId());
+            if (clients.isEmpty() && camera != null) {
+                camera.interrupt();
+                camera = null;
+            }
             break;
         }
     }

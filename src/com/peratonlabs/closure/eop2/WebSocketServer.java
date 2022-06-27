@@ -42,7 +42,7 @@ public class WebSocketServer
                         String id = message.getData();
                         channels.put(id, channel);
                         ids.put(channel, id);
-System.out.println("channel created: " + id);                        
+                        System.out.println("channel created: " + id);                        
                     }
                     
                     protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {

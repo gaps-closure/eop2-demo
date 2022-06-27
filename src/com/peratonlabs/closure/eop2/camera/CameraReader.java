@@ -15,6 +15,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
@@ -26,9 +28,24 @@ import com.peratonlabs.closure.eop2.WebSocketServer;
 
 public class CameraReader implements Runnable
 {
-    private boolean connected = true;
+    private Thread worker;
+    private AtomicBoolean running = new AtomicBoolean(true);
     
     public CameraReader() {
+    }
+    
+    public void interrupt() {
+        running.set(false);
+        worker.interrupt();
+    }
+    
+    public void start() {
+        worker = new Thread(this);
+        worker.start();
+    }
+ 
+    public void stop() {
+        running.set(false);
     }
     
     @Override
@@ -39,29 +56,29 @@ public class CameraReader implements Runnable
         VideoCapture capture = new VideoCapture(0);
         
         // Reading the next video frame from the camera
-        while (connected) {
+        while (running.get()) {
             Mat mat = new Mat();
             capture.read(mat);
-            
+
             MatOfByte mem = new MatOfByte();
             Imgcodecs.imencode(".jpg", mat, mem);
             byte[] memBytes = mem.toArray();
-//            
-//            MatOfByte mob = new MatOfByte(memBytes);
-//            Mat xxx = Imgcodecs.imdecode(mob, Imgcodecs.IMREAD_COLOR);
-//            HighGui.imshow("Image", xxx);
-//            HighGui.waitKey();
+            //            
+            //            MatOfByte mob = new MatOfByte(memBytes);
+            //            Mat xxx = Imgcodecs.imdecode(mob, Imgcodecs.IMREAD_COLOR);
+            //            HighGui.imshow("Image", xxx);
+            //            HighGui.waitKey();
 
             long imgSize = mat.total() * mat.elemSize();
 
             byte[] bytes = new byte[(int) imgSize];
             mat.get(0, 0, bytes);
-            
-//          Mat m2 = new Mat(mat.rows(), mat.cols(), mat.type());
-//          m2.put(0,0, bytes);
+
+            //          Mat m2 = new Mat(mat.rows(), mat.cols(), mat.type());
+            //          m2.put(0,0, bytes);
 
             WebSocketServer.broadcast(memBytes);
-            
+
             HighGui.imshow("Image", mat);
             HighGui.waitKey(1);
         }
@@ -121,10 +138,6 @@ public class CameraReader implements Runnable
       }
       */
 
-    public void setConnected(boolean connected) {
-        this.connected = connected;
-    }
-    
     public static void main(String[] args) {
         CameraReader camera = new CameraReader();
         camera.run();

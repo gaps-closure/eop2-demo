@@ -13,8 +13,6 @@ import static io.undertow.util.Headers.CONTENT_TYPE;
 import static io.undertow.util.StatusCodes.OK;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import org.jboss.logging.Logger;
-
 import com.peratonlabs.closure.eop2.video.manager.VideoManager;
 
 import io.undertow.io.Receiver.FullStringCallback;
