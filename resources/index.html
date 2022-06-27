@@ -51,6 +51,10 @@
                       oninput="this.nextElementSibling.value = this.value" >
              <output>100</output>
            </div>
+           
+           <div class="row">
+             <input type="hidden" value="closure" id="id" name="id">
+           </div>
                                      
 			     <div class="row">
 			       <label></label>
@@ -67,13 +71,14 @@
       </figure>
     </div>
   </div>
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script async src="js/opencv.js"></script>
   
 <script>
     //const player = document.querySelector("#player");
     //const dCtx = player.getContext('2d');
     const jpgplayer = document.querySelector("#jpgplayer");
+    const id = document.getElementById("id");
 
     var socket;
     //const caption = document.getElementById("caption");
@@ -82,6 +87,8 @@
     // btn.addEventListener("click", () => {
     function toggleButton() {
         if (btn.value === "Play") {
+            id.value = uid();
+
             btn.value = "Stop";
             btn.style.background="url('image/pause.png') no-repeat";
             //caption.innerHTML = "Playing";
@@ -165,6 +172,11 @@
         socket.close();
         console.log("client close socket");
     }
+    
+    function uid() {
+    	  // return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
+    	  return Date.now() + (Math.random().toString(26)).replace(/\./g,"");
+    };
     
     formElem.onsubmit = async (e) => {
     	  toggleButton()

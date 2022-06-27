@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 
 public class Request
 {
+    private String id;
     private Integer frameRate;
     private long delay;
     private boolean color;
