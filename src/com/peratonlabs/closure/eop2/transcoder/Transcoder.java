@@ -67,8 +67,11 @@ public class Transcoder
 
     public static void broadcast(Mat mat) {
         for (Transcoder transcoder : clients.values()) {
+            
+            Mat mmm = transcoder.convertGrayScale(mat);
+            
             MatOfByte mem = new MatOfByte();
-            Imgcodecs.imencode(".jpg", mat, mem);
+            Imgcodecs.imencode(".jpg", mmm, mem);
             byte[] memBytes = mem.toArray();
 
             WebSocketServer.broadcast(memBytes);
