@@ -67,16 +67,25 @@ public class Transcoder
 
     public static void broadcast(Mat mat) {
         for (Transcoder transcoder : clients.values()) {
+            Request request = transcoder.request;
             
-            Mat mmm = transcoder.convertGrayScale(mat);
+            Mat mmm = mat.clone();
+            if (!request.isColor())
+                mmm = transcoder.convertGrayScale(mmm);
+            
+            if (request.isBlur())
+                mmm = transcoder.addBlur(mmm);
+            
+            if (request.isScale())
+                mmm = transcoder.changeImageScale(mmm, request);
             
             MatOfByte mem = new MatOfByte();
             Imgcodecs.imencode(".jpg", mmm, mem);
             byte[] memBytes = mem.toArray();
 
-            WebSocketServer.broadcast(memBytes);
+            WebSocketServer.broadcast(memBytes);//TODO: not broadcast
             
-            System.out.println("Transcoder: " + transcoder.request.getId());
+//            System.out.println("Transcoder: " + transcoder.request.getId());
         }
     }
     
@@ -138,6 +147,20 @@ public class Transcoder
         return frame;
     }
 
+    private Mat changeImageScale(Mat frame, Request request) {
+        Integer width = (int) frame.size().width;
+        Integer height = (int) frame.size().height;
+        Integer newWidth = (int) (width * request.getScalePercentage() / 100);
+        Integer newHeight = (int) (height * request.getScalePercentage() / 100);
+
+        Size newSz = new Size(newWidth, newHeight);
+        Imgproc.resize(frame, frame, newSz);
+
+        Size sz = new Size(width, height);
+        Imgproc.resize(frame, frame, sz);
+        return frame;
+    }
+    
     private Mat convertGrayScale(Mat frame) {
         Mat grayMat = new Mat();
         Imgproc.cvtColor(frame, grayMat, Imgproc.COLOR_RGB2GRAY);
