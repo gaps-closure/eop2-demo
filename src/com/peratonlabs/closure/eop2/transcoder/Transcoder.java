@@ -74,7 +74,7 @@ public class Transcoder
                 mmm = transcoder.convertGrayScale(mmm);
             
             if (request.isBlur())
-                mmm = transcoder.addBlur(mmm);
+                mmm = transcoder.addBlur(mmm, true);
             
             if (request.isScale())
                 mmm = transcoder.changeImageScale(mmm, request);
@@ -171,6 +171,26 @@ public class Transcoder
         Size size = new Size(45, 45);
         Point point = new Point(20, 30);
         Imgproc.blur(frame, frame, size, point, Core.BORDER_DEFAULT);
+        return frame;
+    }
+    
+    private Mat addBlur(Mat frame, boolean dummy) {
+      //Drawing a Rectangle
+        Point point1 = new Point(100, 100);
+        Point point2 = new Point(500, 300);
+        Scalar color = new Scalar(0, 255, 0);
+        int thickness = 1;
+        Imgproc.rectangle (frame, point1, point2, color, thickness);
+
+        Size size = new Size(45, 45);
+        Point point = new Point(20, 30);
+        //Imgproc.blur(mat, mat, size, point, Core.BORDER_DEFAULT);
+
+        Rect rect = new Rect(point1, point2);
+
+        Mat mask = frame.submat(rect);
+        Imgproc.GaussianBlur(mask, mask, new Size(55, 55), 55); // or any other processing
+        
         return frame;
     }
 }
