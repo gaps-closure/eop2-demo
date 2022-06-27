@@ -21,8 +21,10 @@ import org.opencv.core.MatOfByte;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
+import org.opencv.videoio.Videoio;
 
 import com.peratonlabs.closure.eop2.WebSocketServer;
+import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 
 public class CameraReader implements Runnable
 {
@@ -57,6 +59,10 @@ public class CameraReader implements Runnable
         while (running.get()) {
             Mat mat = new Mat();
             capture.read(mat);
+            
+            // These are not strictly necessary
+            capture.set(Videoio.CAP_PROP_FRAME_WIDTH, 640);
+            capture.set(Videoio.CAP_PROP_FRAME_HEIGHT, 480);
 
             MatOfByte mem = new MatOfByte();
             Imgcodecs.imencode(".jpg", mat, mem);
@@ -75,7 +81,8 @@ public class CameraReader implements Runnable
             //          Mat m2 = new Mat(mat.rows(), mat.cols(), mat.type());
             //          m2.put(0,0, bytes);
 
-            WebSocketServer.broadcast(memBytes);
+            //WebSocketServer.broadcast(memBytes);
+            Transcoder.broadcast(mat);
 
             HighGui.imshow("Image", mat);
             HighGui.waitKey(1);
@@ -104,6 +111,31 @@ public class CameraReader implements Runnable
         
         return null;
     }
+    
+//    public void setRes_1080p()
+//    {
+//        capture.set(3, 1920);
+//        capture.set(4, 1080);
+//    }
+//    
+//    public void setRes_720p()
+//    {
+//        capture.set(3, 1280);
+//        capture.set(4, 720);
+//    }
+//    
+//    public void setRes_480p()
+//    {
+//        capture.set(3, 640);
+//        capture.set(4, 480);
+//    }
+//    
+//    public void setRes(Integer height, Integer width)
+//    {
+//        capture.set(3, width);
+//        capture.set(4, height);
+//    }
+    
     /*
     private static void png2avc(String pattern, String out) throws IOException {
         FileChannel sink = null;
