@@ -13,8 +13,6 @@ package com.peratonlabs.closure.eop2.camera;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opencv.core.Core;
