@@ -4,3 +4,6 @@ curl -i -X DELETE http://rest-api.io/items/5069b47aa892630aae059584
 curl -i -X POST -H 'Content-Type: application/json' -d '{"name": "New item", "year": "2009"}' http://rest-api.io/items
 curl -i -X POST -H 'Content-Type: application/x-www-form-urlencoded' -d 'xxxx' http://localhost:8080/controller/xxx
 curl -i -X POST -H 'Content-Type: application/json' -d '{"frameRate": 30, "delay": 10}' http://localhost:8080/request
+
+# find the IP assigned to the IP camera via DHCP ports
+sudo tcpdump -i any port 67 or port 68 -e -n -vv
