@@ -20,7 +20,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
-import com.peratonlabs.closure.eop2.ClosureServer;
+import com.peratonlabs.closure.eop2.VideoServer;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 
 public class CameraReader implements Runnable
@@ -49,7 +49,7 @@ public class CameraReader implements Runnable
     public void run() {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         
-        ClosureServer closure = ClosureServer.getInstance();
+        VideoServer closure = VideoServer.getInstance();
         
         boolean resize = false;
         VideoCapture capture = null;

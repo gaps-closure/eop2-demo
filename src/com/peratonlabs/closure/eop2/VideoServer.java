@@ -19,9 +19,9 @@ import static io.undertow.Handlers.resource;
 import com.peratonlabs.closure.eop2.camera.CameraType;
 import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
-public class ClosureServer 
+public class VideoServer 
 {
-    private static ClosureServer instance;
+    private static VideoServer instance;
     
     private CameraType cameraType = CameraType.WEB_CAMERA;
     private String cameraAddr = "127.0.0.1";
@@ -31,14 +31,14 @@ public class ClosureServer
    
     private HttpHandler handler = new PathHandler()
             .addPrefixPath("/video", WebSocketServer.createWebSocketHandler())
-            .addPrefixPath("/", resource(new ClassPathResourceManager(ClosureServer.class.getClassLoader()))
+            .addPrefixPath("/", resource(new ClassPathResourceManager(VideoServer.class.getClassLoader()))
                                         .addWelcomeFiles("index.html"))
             .addPrefixPath("/request", Handlers.routing().post("/{request}", VideoRequester.createRequest()))
     ;
     
-    public static ClosureServer getInstance() {
+    public static VideoServer getInstance() {
         if (instance == null) {
-            instance = new ClosureServer();
+            instance = new VideoServer();
         }
         return instance;
     }
@@ -69,7 +69,7 @@ public class ClosureServer
     }
     
     public static void main(final String[] args) {
-        ClosureServer closure = getInstance();
+        VideoServer closure = getInstance();
         closure.getOpts(args);
         
         Undertow server = Undertow.builder()
