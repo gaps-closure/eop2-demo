@@ -1,7 +1,7 @@
 package com.peratonlabs.closure.eop2.transcoder;
 
 import org.opencv.core.*;
-import com.peratonlabs.closure.eop2.WebSocketServer;
+
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
 import org.opencv.imgcodecs.Imgcodecs;

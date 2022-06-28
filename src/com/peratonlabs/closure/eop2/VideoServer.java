@@ -17,6 +17,7 @@ import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import static io.undertow.Handlers.resource;
 
 import com.peratonlabs.closure.eop2.camera.CameraType;
+import com.peratonlabs.closure.eop2.transcoder.WebSocketServer;
 import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
 public class VideoServer 

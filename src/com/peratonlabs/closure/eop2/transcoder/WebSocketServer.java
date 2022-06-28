@@ -9,7 +9,7 @@
  *
  * Jun 27, 2022
  */
-package com.peratonlabs.closure.eop2;
+package com.peratonlabs.closure.eop2.transcoder;
 
 import io.undertow.websockets.core.AbstractReceiveListener;
 import io.undertow.websockets.core.BufferedTextMessage;
