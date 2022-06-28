@@ -78,18 +78,20 @@
 <script>
     //const player = document.querySelector("#player");
     //const dCtx = player.getContext('2d');
+    //const caption = document.getElementById("caption");
     const jpgplayer = document.querySelector("#jpgplayer");
     const id = document.getElementById("id");
+    const btn = document.getElementById("btn");
 
     var socket;
-    //const caption = document.getElementById("caption");
-    const btn = document.getElementById("btn");
+    var playing = false;
     
     // btn.addEventListener("click", () => {
     function toggleButton() {
-        if (btn.value === "Play") {
+        if (!playing) {
             id.value = uid();
             command.value = "start";
+            playing = true;
 
             btn.value = "Stop";
             btn.style.background="url('image/stop.png') no-repeat";
@@ -99,6 +101,7 @@
         }
         else {
         	  command.value = "stop";	
+        	  playing = false;
         
             btn.value= "Play";
             btn.style.background="url('image/play.png') no-repeat";
@@ -163,13 +166,13 @@
         socket.onclose = function(event) {
             console.log("Web Socket closed.");
               
-            btn.value= "Play";
-            btn.style.background="url('image/play.png') no-repeat";
+            //btn.value= "Play";
+            //btn.style.background="url('image/play.png') no-repeat";
             //caption.innerHTML = "Stopped";
         };
         
         socket.onerror = function(event) {
-            alert("Connection to " + event.target.URL + " failed.");
+            // alert("Connection to " + event.target.URL + " failed.");
         }
     }
     
