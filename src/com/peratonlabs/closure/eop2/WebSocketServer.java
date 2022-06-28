@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
+import com.peratonlabs.closure.eop2.video.manager.VideoManager;
+
 public class WebSocketServer 
 {
     private static HashMap<String, WebSocketChannel> channels = new HashMap<String, WebSocketChannel>();
@@ -49,6 +51,7 @@ public class WebSocketServer
                         // camera.setConnected(false);
                         String id = ids.get(webSocketChannel);
                         close(id);
+                        VideoManager.removeClient(id);
                     }
                 });
                 channel.resumeReceives();
@@ -83,6 +86,7 @@ public class WebSocketServer
         }
     }
     
+    // called by both Transcoder and VideManager, depending on how the channel is closed.
     public static void close(String id) {
         if (id == null) {
             System.err.println("no such channel");

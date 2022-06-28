@@ -17,14 +17,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
 import org.opencv.core.Size;
-import org.opencv.highgui.HighGui;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
-import org.opencv.videoio.Videoio;
-
 import com.peratonlabs.closure.eop2.ClosureServer;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 
@@ -72,8 +67,6 @@ public class CameraReader implements Runnable
             break;
         }
         
-        // Reading the next video frame from the camera
-        int count = 1;
         while (running.get()) {
             Mat mat = new Mat();
             capture.read(mat);
@@ -83,9 +76,8 @@ public class CameraReader implements Runnable
 
             Transcoder.broadcast(mat);
 
-            HighGui.imshow("Image", mat);
-            HighGui.waitKey(1);
-            System.out.println("Camera: " + count++);
+//            HighGui.imshow("Image", mat);
+//            HighGui.waitKey(1);
         }
         capture.release();
     }

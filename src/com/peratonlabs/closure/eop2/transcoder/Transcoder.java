@@ -29,16 +29,49 @@ public class Transcoder implements Runnable
     }
     
     public static void removeClient(Request request) {
-        Transcoder transcoder = clients.remove(request.getId());
+        removeClient(request.getId());
+    }
+    
+    public static void removeClient(String id) {
+        Transcoder transcoder = clients.remove(id);
         transcoder.interrupt();
         
-        WebSocketServer.close(request.getId());
+        WebSocketServer.close(id);
     }
 
     public static void broadcast(Mat mat) {
         for (Transcoder transcoder : clients.values()) {
-            transcoder.queue.add(mat);
+            // transcoder.queue.add(mat);
+            transcoder.show(mat);
         }
+    }
+    
+    int cnt = 1;
+    private void show(Mat mat) {
+        Mat mmm = mat.clone();
+        if (!request.isColor())
+            mmm = convertGrayScale(mmm);
+        
+        if (request.isBlur())
+            mmm = addBlur(mmm, false);
+        
+        if (request.isScale())
+            mmm = changeImageScale(mmm, request);
+        
+        MatOfByte mem = new MatOfByte();
+        Imgcodecs.imencode(".jpg", mmm, mem);
+        byte[] memBytes = mem.toArray();
+
+        WebSocketServer.send(request.getId(), memBytes);
+        
+        if (request.getDelay() > 0)
+            try {
+                Thread.sleep(request.getDelay());
+            }
+            catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
     }
     
     private Mat changeImageScale(Mat frame, Request request) {
@@ -54,24 +87,24 @@ public class Transcoder implements Runnable
         return grayMat;
     }
 
-    private Mat addBlur(Mat frame) {
-        Size size = new Size(45, 45);
-        Point point = new Point(20, 30);
-        Imgproc.blur(frame, frame, size, point, Core.BORDER_DEFAULT);
-        return frame;
-    }
-    
-    private Mat addBlur(Mat frame, boolean dummy) {
-        // drawing a rectangle
-        Point point1 = new Point(100, 100);
-        Point point2 = new Point(500, 300);
-        Scalar color = new Scalar(0, 255, 0);
-        int thickness = 1;
-        Imgproc.rectangle (frame, point1, point2, color, thickness);
+    private Mat addBlur(Mat frame, boolean whole) {
+        if (whole) {
+            Size size = new Size(45, 45);
+            Point point = new Point(20, 30);
+            Imgproc.blur(frame, frame, size, point, Core.BORDER_DEFAULT);
+        }
+        else {
+            // drawing a rectangle
+            Point point1 = new Point(100, 100);
+            Point point2 = new Point(500, 300);
+            Scalar color = new Scalar(0, 255, 0);
+            int thickness = 1;
+            Imgproc.rectangle (frame, point1, point2, color, thickness);
 
-        Rect rect = new Rect(point1, point2);
-        Mat mask = frame.submat(rect);
-        Imgproc.GaussianBlur(mask, mask, new Size(55, 55), 55); // or any other processing
+            Rect rect = new Rect(point1, point2);
+            Mat mask = frame.submat(rect);
+            Imgproc.GaussianBlur(mask, mask, new Size(55, 55), 55); // or any other processing
+        }
         
         return frame;
     }
@@ -91,24 +124,8 @@ public class Transcoder implements Runnable
         while (true) {
             try {
                 Mat mat = queue.take();
-                Mat mmm = mat.clone();
-                if (!request.isColor())
-                    mmm = convertGrayScale(mmm);
+                show(mat);
                 
-                if (request.isBlur())
-                    mmm = addBlur(mmm, true);
-                
-                if (request.isScale())
-                    mmm = changeImageScale(mmm, request);
-                
-                MatOfByte mem = new MatOfByte();
-                Imgcodecs.imencode(".jpg", mmm, mem);
-                byte[] memBytes = mem.toArray();
-
-                WebSocketServer.send(request.getId(), memBytes);
-                
-                if (request.getDelay() > 0)
-                    Thread.sleep(request.getDelay());
                 System.out.println("Transcoder " + count++);
             }
             catch (InterruptedException e) {

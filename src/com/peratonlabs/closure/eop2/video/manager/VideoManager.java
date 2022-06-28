@@ -11,7 +11,6 @@ package com.peratonlabs.closure.eop2.video.manager;
 
 import java.util.HashSet;
 
-import com.peratonlabs.closure.eop2.WebSocketServer;
 import com.peratonlabs.closure.eop2.camera.CameraReader;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 import com.peratonlabs.closure.eop2.video.requester.Request;
@@ -40,5 +39,10 @@ public class VideoManager
             }
             break;
         }
+    }
+    
+    public static void removeClient(String id) {
+        clients.remove(id);
+        Transcoder.removeClient(id);
     }
 }
