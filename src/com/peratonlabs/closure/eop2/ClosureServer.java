@@ -15,10 +15,20 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.handlers.PathHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import static io.undertow.Handlers.resource;
+
+import com.peratonlabs.closure.eop2.camera.CameraType;
 import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
 public class ClosureServer 
 {
+    private static ClosureServer instance;
+    
+    private CameraType cameraType = CameraType.WEB_CAMERA;
+    private String cameraAddr = "127.0.0.1";
+    private String cameraUser = "admin";
+    private String cameraPassword = "Boosters";
+    private int cameraDevId = 0;
+   
     private HttpHandler handler = new PathHandler()
             .addPrefixPath("/video", WebSocketServer.createWebSocketHandler())
             .addPrefixPath("/", resource(new ClassPathResourceManager(ClosureServer.class.getClassLoader()))
@@ -26,8 +36,41 @@ public class ClosureServer
             .addPrefixPath("/request", Handlers.routing().post("/{request}", VideoRequester.createRequest()))
     ;
     
+    public static ClosureServer getInstance() {
+        if (instance == null) {
+            instance = new ClosureServer();
+        }
+        return instance;
+    }
+    
+    private void getOpts(String[] args) {
+        String arg;
+        
+        for (int i = 0; i < args.length; i++) {
+            arg = args[i];
+            switch (arg) {
+            case "--cameraType":
+            case "-t":
+                cameraType = CameraType.getByName(args[++i]);
+                break;
+            case "--cameraAddr":
+            case "-a":
+                cameraAddr = args[++i];
+                break;
+            case "--cameraDev":
+            case "-d":
+                cameraDevId = Integer.parseInt(args[++i]);
+                break;
+            default:
+                System.err.println("unknown option: " + arg);
+                break;
+            }
+        }
+    }
+    
     public static void main(final String[] args) {
-        ClosureServer closure = new ClosureServer();
+        ClosureServer closure = getInstance();
+        closure.getOpts(args);
         
         Undertow server = Undertow.builder()
                 .addHttpListener(8080, "localhost")
@@ -36,4 +79,31 @@ public class ClosureServer
         server.start();
     }
 
+    public String getCameraURL() {
+        return "rtsp://" + cameraUser + ":" + cameraPassword + "@" + cameraAddr;
+    }
+    
+    public CameraType getCameraType() {
+        return cameraType;
+    }
+
+    public void setCameraType(CameraType cameraType) {
+        this.cameraType = cameraType;
+    }
+
+    public String getCameraAddr() {
+        return cameraAddr;
+    }
+
+    public void setCameraAddr(String cameraAddr) {
+        this.cameraAddr = cameraAddr;
+    }
+
+    public int getCameraDevId() {
+        return cameraDevId;
+    }
+
+    public void setCameraDevId(int cameraDevId) {
+        this.cameraDevId = cameraDevId;
+    }
 }

@@ -1,7 +1,8 @@
 import numpy as np
 import cv2
 
-src = 'rtsp://admin:Boosters@10.139.80.245'
+#src = 'rtsp://admin:Boosters@10.139.80.245'
+src = 'rtsp://admin:Boosters@192.168.0.203'
 cap = cv2.VideoCapture(src)
 
 while(True):

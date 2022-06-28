@@ -18,11 +18,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
+import org.opencv.core.Size;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
 
+import com.peratonlabs.closure.eop2.ClosureServer;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 
 public class CameraReader implements Runnable
@@ -51,40 +54,38 @@ public class CameraReader implements Runnable
     public void run() {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         
-        // Instantiating the VideoCapture class (camera:: 0)
-        VideoCapture capture = new VideoCapture(0);
+        ClosureServer closure = ClosureServer.getInstance();
+        
+        boolean resize = false;
+        VideoCapture capture = null;
+        switch (closure.getCameraType()) {
+        case WEB_CAMERA:
+            capture = new VideoCapture(closure.getCameraDevId());
+            break;
+        case IP_CAMERA:
+            capture = new VideoCapture(closure.getCameraURL());
+            resize = true;
+            break;
+        default:
+            System.err.println("Unsupported camera type: " + closure.getCameraType());
+            System.exit(1);
+            break;
+        }
         
         // Reading the next video frame from the camera
+        int count = 1;
         while (running.get()) {
             Mat mat = new Mat();
             capture.read(mat);
             
-            // These are not strictly necessary
-            capture.set(Videoio.CAP_PROP_FRAME_WIDTH, 640);
-            capture.set(Videoio.CAP_PROP_FRAME_HEIGHT, 480);
+            if (resize)
+                Imgproc.resize(mat, mat, new Size(0, 0), 0.25, 0.25, Imgproc.INTER_AREA);
 
-            MatOfByte mem = new MatOfByte();
-            Imgcodecs.imencode(".jpg", mat, mem);
-            byte[] memBytes = mem.toArray();
-            //            
-            //            MatOfByte mob = new MatOfByte(memBytes);
-            //            Mat xxx = Imgcodecs.imdecode(mob, Imgcodecs.IMREAD_COLOR);
-            //            HighGui.imshow("Image", xxx);
-            //            HighGui.waitKey();
-
-            long imgSize = mat.total() * mat.elemSize();
-
-            byte[] bytes = new byte[(int) imgSize];
-            mat.get(0, 0, bytes);
-
-            //          Mat m2 = new Mat(mat.rows(), mat.cols(), mat.type());
-            //          m2.put(0,0, bytes);
-
-            //WebSocketServer.broadcast(memBytes);
             Transcoder.broadcast(mat);
 
             HighGui.imshow("Image", mat);
             HighGui.waitKey(1);
+            System.out.println("Camera: " + count++);
         }
         capture.release();
     }

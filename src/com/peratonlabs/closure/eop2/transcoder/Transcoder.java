@@ -87,6 +87,7 @@ public class Transcoder implements Runnable
  
     @Override
     public void run() {
+        int count = 1;
         while (true) {
             try {
                 Mat mat = queue.take();
@@ -108,6 +109,7 @@ public class Transcoder implements Runnable
                 
                 if (request.getDelay() > 0)
                     Thread.sleep(request.getDelay());
+                System.out.println("Transcoder " + count++);
             }
             catch (InterruptedException e) {
                 break;
@@ -115,3 +117,11 @@ public class Transcoder implements Runnable
         }
     }
 }
+
+//long imgSize = mat.total() * mat.elemSize();
+//
+//byte[] bytes = new byte[(int) imgSize];
+//mat.get(0, 0, bytes);
+
+//          Mat m2 = new Mat(mat.rows(), mat.cols(), mat.type());
+//          m2.put(0,0, bytes);
