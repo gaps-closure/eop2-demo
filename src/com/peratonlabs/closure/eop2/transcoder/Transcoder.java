@@ -41,8 +41,8 @@ public class Transcoder implements Runnable
 
     public static void broadcast(Mat mat) {
         for (Transcoder transcoder : clients.values()) {
-            // transcoder.queue.add(mat);
-            transcoder.show(mat);
+            transcoder.queue.add(mat);
+            //transcoder.show(mat);
         }
     }
     
@@ -69,7 +69,6 @@ public class Transcoder implements Runnable
                 Thread.sleep(request.getDelay());
             }
             catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
     }
@@ -120,13 +119,10 @@ public class Transcoder implements Runnable
  
     @Override
     public void run() {
-        int count = 1;
         while (true) {
             try {
                 Mat mat = queue.take();
                 show(mat);
-                
-                System.out.println("Transcoder " + count++);
             }
             catch (InterruptedException e) {
                 break;
