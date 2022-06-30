@@ -97,13 +97,14 @@ public class Transcoder implements Runnable
 
     public static void broadcast(Mat mat) {
         for (Transcoder transcoder : clients.values()) {
-            transcoder.queue.add(mat);
+            if (transcoder.channel != null)  // websocket not connected; don't queue the frame
+                transcoder.queue.add(mat);
             //transcoder.show(mat);
         }
     }
     
     int cnt = 1;
-    private void show(Mat mat) {
+    private boolean show(Mat mat) {
         Mat mmm = mat.clone();
         if (!request.isColor())
             mmm = convertGrayScale(mmm);
@@ -120,22 +121,25 @@ public class Transcoder implements Runnable
 
         if (channel == null) {
             System.err.println("no channel for " + request.getId());
-            return;
+            return false;
         }
         try {
             WebSockets.sendBinaryBlocking(ByteBuffer.wrap(memBytes), channel);
         }
         catch (IOException e) {
             e.printStackTrace();
+            channel = null;
         }
         
-        if (request.getDelay() > 0)
+        if (request.getDelay() > 0) {
             try {
                 Thread.sleep(request.getDelay());
             }
             catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+        return true;
     }
     
     private Mat changeImageScale(Mat frame, Request request) {
@@ -187,7 +191,8 @@ public class Transcoder implements Runnable
         while (true) {
             try {
                 Mat mat = queue.take();
-                show(mat);
+                if (!show(mat))
+                    break;
             }
             catch (InterruptedException e) {
                 break;
