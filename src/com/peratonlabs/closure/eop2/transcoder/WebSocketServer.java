@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
-import com.peratonlabs.closure.eop2.video.manager.VideoManager;
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
 public class WebSocketServer 

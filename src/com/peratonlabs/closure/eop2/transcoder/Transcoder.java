@@ -59,7 +59,7 @@ public class Transcoder implements Runnable
         switch(command) {
         case "start":
             transcoder.start();
-            VideoManager.handleCommand(true);
+            VideoManager.startCamera();
             break;
         case "stop":
             transcoder.interrupt();

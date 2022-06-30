@@ -9,8 +9,6 @@
  */
 package com.peratonlabs.closure.eop2.video.manager;
 
-import java.util.HashSet;
-
 import com.peratonlabs.closure.eop2.camera.CameraReader;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 import com.peratonlabs.closure.eop2.video.requester.Request;
@@ -18,29 +16,25 @@ import com.peratonlabs.closure.eop2.video.requester.Request;
 public class VideoManager
 {
     private static CameraReader camera;
-    //private static HashSet<String> clients = new HashSet<String>();
 
     public static void handleRequest(Request request) {
+        // Do permission checking here
         Transcoder.updateRequest(request);
     }
     
-    public static void handleCommand(boolean start) {
-        if (start) {
-            if (camera == null) {
-                camera = new CameraReader();
-                camera.start();
-            }
-        }
-        else {
-            if (camera != null) {
-                camera.interrupt();
-                camera = null;
-            }
-        }
+    public static void startCamera() {
+        if (camera != null)
+            return;
+            
+        camera = new CameraReader();
+        camera.start();
     }
     
-//    public static void removeClient(String id) {
-//        clients.remove(id);
-//        Transcoder.removeClient(id);
-//    }
+    public static void stopCamera() {
+        if (camera == null)
+            return;
+        
+        camera.interrupt();
+        camera = null;
+    }
 }
