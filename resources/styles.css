@@ -72,6 +72,10 @@ canvas, video {
   margin-bottom: 0.4cm;
 }
 
+.slider-width100 {
+	width: 150px !important;
+}
+
 .choices {
     list-style-type: none;
     margin-left: 0;

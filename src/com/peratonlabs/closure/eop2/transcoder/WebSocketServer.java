@@ -15,24 +15,16 @@ import io.undertow.websockets.core.AbstractReceiveListener;
 import io.undertow.websockets.core.BufferedTextMessage;
 import io.undertow.websockets.core.StreamSourceFrameChannel;
 import io.undertow.websockets.core.WebSocketChannel;
-import io.undertow.websockets.core.WebSockets;
 import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.WebSocketProtocolHandshakeHandler;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 
 import static io.undertow.Handlers.websocket;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
 public class WebSocketServer 
 {
-    private static HashMap<String, WebSocketChannel> channels = new HashMap<String, WebSocketChannel>();
-    private static HashMap<WebSocketChannel, String> ids = new HashMap<WebSocketChannel, String>();
-
     public static WebSocketProtocolHandshakeHandler createWebSocketHandler() {
         return websocket(new WebSocketConnectionCallback() {
             @Override
@@ -40,64 +32,18 @@ public class WebSocketServer
                 channel.getReceiveSetter().set(new AbstractReceiveListener() {
                     @Override
                     protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
-                        // WebSockets.sendText(message.getData(), channel, null);
                         String msg = message.getData();
                         Request req = Request.fromJson(msg);
-                        Transcoder.runCommand(req);
-                        
-                        String id = req.getId();
-                        channels.put(id, channel);
-                        ids.put(channel, id);
+                        Transcoder.runCommand(req, channel);
                     }
                     
                     protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
-                        // camera.setConnected(false);
-                        String id = ids.get(webSocketChannel);
-                        close(id);
-                        //VideoManager.removeClient(id);
+                        // TODO:
                     }
                 });
                 channel.resumeReceives();
             }
         });
-    }
-    
-    public static void broadcast(byte[] memBytes) {
-        for (WebSocketChannel channel : channels.values()) {
-            try {
-                if (channel != null && !channel.isCloseFrameReceived())
-                    WebSockets.sendBinaryBlocking(ByteBuffer.wrap(memBytes), channel);
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    
-    public static void send(String id, byte[] memBytes) {
-        WebSocketChannel channel = channels.get(id);
-        if (channel == null) {
-            System.err.println("no channel for " + id);
-            return;
-        }
-        try {
-            WebSockets.sendBinaryBlocking(ByteBuffer.wrap(memBytes), channel);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    // called by both Transcoder and VideManager, depending on how the channel is closed.
-    public static void close(String id) {
-        if (id == null) {
-            System.err.println("no such channel");
-            return;
-        }
-
-        WebSocketChannel channel = channels.remove(id);
-        ids.remove(channel);
-        channels.remove(id);
     }
 }
 

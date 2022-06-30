@@ -5,8 +5,14 @@ import org.opencv.core.*;
 import com.peratonlabs.closure.eop2.video.manager.VideoManager;
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
+import io.undertow.websockets.core.WebSocketChannel;
+import io.undertow.websockets.core.WebSockets;
+
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -15,6 +21,7 @@ public class Transcoder implements Runnable
     private static HashMap<String, Transcoder> clients = new HashMap<String, Transcoder>();
     
     private Request request;
+    private WebSocketChannel channel;
     private Thread worker;
     private LinkedBlockingQueue<Mat> queue = new LinkedBlockingQueue<Mat>();
     
@@ -32,13 +39,13 @@ public class Transcoder implements Runnable
         transcoder.request.update(request);
     }
     
-    public static void addClient(Request request) {
-        Transcoder transcoder = new Transcoder(request);
-        
-        clients.put(request.getId(), transcoder);
-    }
+//    public static void addClient(Request request) {
+//        Transcoder transcoder = new Transcoder(request);
+//        
+//        clients.put(request.getId(), transcoder);
+//    }
     
-    public static void runCommand(Request request) {
+    public static void runCommand(Request request, WebSocketChannel channel) {
         if (request == null) {
             System.err.println("null request");
             return;
@@ -60,10 +67,19 @@ public class Transcoder implements Runnable
         }
         switch(command) {
         case "start":
+            transcoder.channel = channel;
             transcoder.start();
             VideoManager.startCamera();
             break;
         case "stop":
+            try {
+                if (transcoder.channel != null)
+                    transcoder.channel.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            transcoder.channel = null;
             transcoder.interrupt();
             break;
         }
@@ -77,8 +93,6 @@ public class Transcoder implements Runnable
     public static void removeClient(String id) {
         Transcoder transcoder = clients.remove(id);
         transcoder.interrupt();
-        
-        WebSocketServer.close(id);
     }
 
     public static void broadcast(Mat mat) {
@@ -104,7 +118,16 @@ public class Transcoder implements Runnable
         Imgcodecs.imencode(".jpg", mmm, mem);
         byte[] memBytes = mem.toArray();
 
-        WebSocketServer.send(request.getId(), memBytes);
+        if (channel == null) {
+            System.err.println("no channel for " + request.getId());
+            return;
+        }
+        try {
+            WebSockets.sendBinaryBlocking(ByteBuffer.wrap(memBytes), channel);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
         
         if (request.getDelay() > 0)
             try {
