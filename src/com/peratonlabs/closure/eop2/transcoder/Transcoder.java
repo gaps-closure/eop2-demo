@@ -3,6 +3,7 @@ package com.peratonlabs.closure.eop2.transcoder;
 import org.opencv.core.*;
 
 import com.peratonlabs.closure.eop2.video.manager.VideoManager;
+import com.peratonlabs.closure.eop2.video.requester.Command;
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
 import io.undertow.websockets.core.WebSocketChannel;
@@ -45,22 +46,22 @@ public class Transcoder implements Runnable
 //        clients.put(request.getId(), transcoder);
 //    }
     
-    public static void runCommand(Request request, WebSocketChannel channel) {
-        if (request == null) {
+    public static void runCommand(Command cmdObj, WebSocketChannel channel) {
+        if (cmdObj == null) {
             System.err.println("null request");
             return;
         }
         
-        String id = request.getId();
+        String id = cmdObj.getId();
         Transcoder transcoder = clients.get(id);
         if (transcoder == null) {
             System.out.println("Warning: transcoder not found for " + id);
-            request.setColor(true);
+            Request request = new Request(id);
             updateRequest(request);
             transcoder = clients.get(id);
         }
         
-        String command = request.getCommand();
+        String command = cmdObj.getCommand();
         if (command == null) {
             System.err.println("null command for " + id);
             return;

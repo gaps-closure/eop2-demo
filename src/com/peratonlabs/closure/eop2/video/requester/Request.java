@@ -6,11 +6,10 @@ import com.google.gson.GsonBuilder;
 public class Request
 {
     private String id;
-    private String command;
     
     private Integer frameRate;
     private long delay;
-    private boolean color;
+    private boolean color = true;
     private boolean blur;
     private boolean scale;
     private Integer scalePercentage;
@@ -19,6 +18,10 @@ public class Request
 //            .registerTypeAdapterFactory(typeAdapterFactory)
             .setPrettyPrinting()
             .create();
+    
+    public Request(String id) {
+        this.id = id;
+    }
     
     public static Request fromJson(String json) {
         return gson.fromJson(json, Request.class);
@@ -91,13 +94,5 @@ public class Request
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getCommand() {
-        return command;
-    }
-
-    public void setCommand(String command) {
-        this.command = command;
     }
 }

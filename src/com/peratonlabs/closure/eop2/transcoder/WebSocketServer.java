@@ -21,7 +21,7 @@ import io.undertow.websockets.spi.WebSocketHttpExchange;
 
 import static io.undertow.Handlers.websocket;
 
-import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.eop2.video.requester.Command;
 
 public class WebSocketServer 
 {
@@ -33,8 +33,8 @@ public class WebSocketServer
                     @Override
                     protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
                         String msg = message.getData();
-                        Request req = Request.fromJson(msg);
-                        Transcoder.runCommand(req, channel);
+                        Command cmd = Command.fromJson(msg);
+                        Transcoder.runCommand(cmd, channel);
                     }
                     
                     protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
