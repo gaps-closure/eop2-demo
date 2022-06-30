@@ -47,8 +47,10 @@ public class Transcoder implements Runnable
         String id = request.getId();
         Transcoder transcoder = clients.get(id);
         if (transcoder == null) {
-            System.err.println("transcoder not found for " + id);
-            return;
+            System.out.println("Warning: transcoder not found for " + id);
+            request.setColor(true);
+            updateRequest(request);
+            transcoder = clients.get(id);
         }
         
         String command = request.getCommand();
