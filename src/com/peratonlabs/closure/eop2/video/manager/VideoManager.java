@@ -18,31 +18,29 @@ import com.peratonlabs.closure.eop2.video.requester.Request;
 public class VideoManager
 {
     private static CameraReader camera;
-    private static HashSet<String> clients = new HashSet<String>();
+    //private static HashSet<String> clients = new HashSet<String>();
 
     public static void handleRequest(Request request) {
-        switch(request.getCommand()) {
-        case "start":
+        Transcoder.updateRequest(request);
+    }
+    
+    public static void handleCommand(boolean start) {
+        if (start) {
             if (camera == null) {
                 camera = new CameraReader();
                 camera.start();
             }
-            clients.add(request.getId());
-            Transcoder.addClient(request);
-            break;
-        case "stop":
-            Transcoder.removeClient(request);
-            clients.remove(request.getId());
-            if (clients.isEmpty() && camera != null) {
+        }
+        else {
+            if (camera != null) {
                 camera.interrupt();
                 camera = null;
             }
-            break;
         }
     }
     
-    public static void removeClient(String id) {
-        clients.remove(id);
-        Transcoder.removeClient(id);
-    }
+//    public static void removeClient(String id) {
+//        clients.remove(id);
+//        Transcoder.removeClient(id);
+//    }
 }

@@ -2,6 +2,7 @@ package com.peratonlabs.closure.eop2.transcoder;
 
 import org.opencv.core.*;
 
+import com.peratonlabs.closure.eop2.video.manager.VideoManager;
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
 import org.opencv.imgcodecs.Imgcodecs;
@@ -21,11 +22,50 @@ public class Transcoder implements Runnable
         this.request = request;
     }
     
+    public static void updateRequest(Request request) {
+        Transcoder transcoder = clients.get(request.getId());
+        if (transcoder == null) {
+            transcoder = new Transcoder(request);
+            clients.put(request.getId(), transcoder);
+            return;
+        }
+        transcoder.request.update(request);
+    }
+    
     public static void addClient(Request request) {
         Transcoder transcoder = new Transcoder(request);
-        transcoder.start();
         
         clients.put(request.getId(), transcoder);
+    }
+    
+    public static void runCommand(Request request) {
+        if (request == null) {
+            System.err.println("null request");
+            return;
+        }
+        
+        String id = request.getId();
+        Transcoder transcoder = clients.get(id);
+        if (transcoder == null) {
+            System.err.println("transcoder not found for " + id);
+            return;
+        }
+        
+        String command = request.getCommand();
+        if (command == null) {
+            System.err.println("null command for " + id);
+            return;
+        }
+        switch(command) {
+        case "start":
+            transcoder.start();
+            VideoManager.handleCommand(true);
+            break;
+        case "stop":
+            transcoder.interrupt();
+            break;
+        }
+        System.out.println(command + " command processed");                        
     }
     
     public static void removeClient(Request request) {

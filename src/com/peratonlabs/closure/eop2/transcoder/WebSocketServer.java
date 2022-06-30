@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import com.peratonlabs.closure.eop2.video.manager.VideoManager;
+import com.peratonlabs.closure.eop2.video.requester.Request;
 
 public class WebSocketServer 
 {
@@ -41,17 +42,20 @@ public class WebSocketServer
                     @Override
                     protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
                         // WebSockets.sendText(message.getData(), channel, null);
-                        String id = message.getData();
+                        String msg = message.getData();
+                        Request req = Request.fromJson(msg);
+                        Transcoder.runCommand(req);
+                        
+                        String id = req.getId();
                         channels.put(id, channel);
                         ids.put(channel, id);
-                        System.out.println("channel created: " + id);                        
                     }
                     
                     protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
                         // camera.setConnected(false);
                         String id = ids.get(webSocketChannel);
                         close(id);
-                        VideoManager.removeClient(id);
+                        //VideoManager.removeClient(id);
                     }
                 });
                 channel.resumeReceives();
@@ -81,7 +85,6 @@ public class WebSocketServer
             WebSockets.sendBinaryBlocking(ByteBuffer.wrap(memBytes), channel);
         }
         catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

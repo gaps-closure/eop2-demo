@@ -24,6 +24,15 @@ public class Request
         return gson.fromJson(json, Request.class);
     }
     
+    public void update(Request request) {
+        this.frameRate = request.frameRate;
+        this.delay = request.delay;
+        this.color = request.color;
+        this.blur = request.blur;
+        this.scale = request.scale;
+        this.scalePercentage = request.scalePercentage;
+    }
+    
     public String toJson() {
         return gson.toJson(this, getClass());
     }
