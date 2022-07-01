@@ -20,8 +20,8 @@ import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
-import com.peratonlabs.closure.eop2.VideoServer;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
+import com.peratonlabs.closure.eop2.video.manager.VideoManager;
 
 public class CameraReader implements Runnable
 {
@@ -49,20 +49,20 @@ public class CameraReader implements Runnable
     public void run() {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         
-        VideoServer closure = VideoServer.getInstance();
+        VideoManager manager = VideoManager.getInstance();
         
         boolean resize = false;
         VideoCapture capture = null;
-        switch (closure.getCameraType()) {
+        switch (manager.getCameraType()) {
         case WEB_CAMERA:
-            capture = new VideoCapture(closure.getCameraDevId());
+            capture = new VideoCapture(manager.getCameraDevId());
             break;
         case IP_CAMERA:
-            capture = new VideoCapture(closure.getCameraURL());
+            capture = new VideoCapture(manager.getCameraURL());
             resize = true;
             break;
         default:
-            System.err.println("Unsupported camera type: " + closure.getCameraType());
+            System.err.println("Unsupported camera type: " + manager.getCameraType());
             System.exit(1);
             break;
         }

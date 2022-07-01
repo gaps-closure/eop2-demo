@@ -7,13 +7,9 @@ import com.peratonlabs.closure.eop2.video.requester.Command;
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
 import io.undertow.websockets.core.WebSocketChannel;
-import io.undertow.websockets.core.WebSockets;
-
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -22,7 +18,7 @@ public class Transcoder implements Runnable
     private static HashMap<String, Transcoder> clients = new HashMap<String, Transcoder>();
     
     private Request request;
-    private WebSocketChannel channel;
+    private Sender sender;
     private Thread worker;
     private LinkedBlockingQueue<Mat> queue = new LinkedBlockingQueue<Mat>();
     
@@ -68,19 +64,13 @@ public class Transcoder implements Runnable
         }
         switch(command) {
         case "start":
-            transcoder.channel = channel;
+            transcoder.sender = new Sender(channel);
             transcoder.start();
             VideoManager.startCamera();
             break;
         case "stop":
-            try {
-                if (transcoder.channel != null)
-                    transcoder.channel.close();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-            transcoder.channel = null;
+            transcoder.sender.close();
+            transcoder.sender = null;
             transcoder.interrupt();
             break;
         }
@@ -98,7 +88,7 @@ public class Transcoder implements Runnable
 
     public static void broadcast(Mat mat) {
         for (Transcoder transcoder : clients.values()) {
-            if (transcoder.channel != null)  // websocket not connected; don't queue the frame
+            if (transcoder.sender != null)  // websocket not connected; don't queue the frame
                 transcoder.queue.add(mat);
             //transcoder.show(mat);
         }
@@ -120,17 +110,11 @@ public class Transcoder implements Runnable
         Imgcodecs.imencode(".jpg", mmm, mem);
         byte[] memBytes = mem.toArray();
 
-        if (channel == null) {
+        if (sender == null) {
             System.err.println("no channel for " + request.getId());
             return false;
         }
-        try {
-            WebSockets.sendBinaryBlocking(ByteBuffer.wrap(memBytes), channel);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            channel = null;
-        }
+        sender.send(memBytes);
         
         if (request.getDelay() > 0) {
             try {

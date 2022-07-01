@@ -16,19 +16,12 @@ import io.undertow.server.handlers.PathHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import static io.undertow.Handlers.resource;
 
-import com.peratonlabs.closure.eop2.camera.CameraType;
 import com.peratonlabs.closure.eop2.transcoder.WebSocketServer;
 import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
 public class VideoServer 
 {
     private static VideoServer instance;
-    
-    private CameraType cameraType = CameraType.WEB_CAMERA;
-    private String cameraAddr = "127.0.0.1";
-    private String cameraUser = "admin";
-    private String cameraPassword = "Boosters";
-    private int cameraDevId = 0;
    
     private HttpHandler handler = new PathHandler()
             .addPrefixPath("/video", WebSocketServer.createWebSocketHandler())
@@ -44,67 +37,11 @@ public class VideoServer
         return instance;
     }
     
-    private void getOpts(String[] args) {
-        String arg;
-        
-        for (int i = 0; i < args.length; i++) {
-            arg = args[i];
-            switch (arg) {
-            case "--cameraType":
-            case "-t":
-                cameraType = CameraType.getByName(args[++i]);
-                break;
-            case "--cameraAddr":
-            case "-a":
-                cameraAddr = args[++i];
-                break;
-            case "--cameraDev":
-            case "-d":
-                cameraDevId = Integer.parseInt(args[++i]);
-                break;
-            default:
-                System.err.println("unknown option: " + arg);
-                break;
-            }
-        }
-    }
-    
-    public static void main(final String[] args) {
-        VideoServer closure = getInstance();
-        closure.getOpts(args);
-        
+    public void start() {
         Undertow server = Undertow.builder()
                 .addHttpListener(8080, "localhost")
-                .setHandler(closure.handler)
+                .setHandler(handler)
                 .build();
         server.start();
-    }
-
-    public String getCameraURL() {
-        return "rtsp://" + cameraUser + ":" + cameraPassword + "@" + cameraAddr;
-    }
-    
-    public CameraType getCameraType() {
-        return cameraType;
-    }
-
-    public void setCameraType(CameraType cameraType) {
-        this.cameraType = cameraType;
-    }
-
-    public String getCameraAddr() {
-        return cameraAddr;
-    }
-
-    public void setCameraAddr(String cameraAddr) {
-        this.cameraAddr = cameraAddr;
-    }
-
-    public int getCameraDevId() {
-        return cameraDevId;
-    }
-
-    public void setCameraDevId(int cameraDevId) {
-        this.cameraDevId = cameraDevId;
     }
 }
