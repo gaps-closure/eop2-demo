@@ -80,6 +80,8 @@ public class VideoManager
             break;
         case "stop":
             transcoder.interrupt();
+            clients.remove(request.getId());
+            stopCamera();
             break;
         }
         System.out.println("VideoManager: " + command + " command processed");                        
@@ -116,6 +118,9 @@ public class VideoManager
     }
     
     public static void stopCamera() {
+        if (!clients.isEmpty())
+            return;
+        
         if (camera == null)
             return;
         
