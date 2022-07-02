@@ -20,7 +20,6 @@ import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
-import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 import com.peratonlabs.closure.eop2.video.manager.VideoManager;
 
 public class CameraReader implements Runnable
@@ -74,7 +73,7 @@ public class CameraReader implements Runnable
             if (resize)
                 Imgproc.resize(mat, mat, new Size(0, 0), 0.25, 0.25, Imgproc.INTER_AREA);
 
-            Transcoder.broadcast(mat);
+            VideoManager.broadcast(mat);
 
 //            HighGui.imshow("Image", mat);
 //            HighGui.waitKey(1);

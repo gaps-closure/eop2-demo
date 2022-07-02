@@ -18,6 +18,7 @@ import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import static io.undertow.Handlers.path;
 import static io.undertow.Handlers.resource;
 
+import com.peratonlabs.closure.eop2.VideoServer;
 import com.peratonlabs.closure.eop2.video.manager.VideoManager;
 import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
@@ -36,7 +37,7 @@ public class ClosureServer
                     })
                     )
             .addPrefixPath("/request", Handlers.routing()
-                    .post("/{request}", VideoRequester.createRequest())
+                    .post("/{request}", VideoServer.createRequest())
                     )
             // REST API path
             .addPrefixPath("/api", Handlers.routing()

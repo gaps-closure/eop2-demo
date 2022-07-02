@@ -2,99 +2,28 @@ package com.peratonlabs.closure.eop2.transcoder;
 
 import org.opencv.core.*;
 
-import com.peratonlabs.closure.eop2.video.manager.VideoManager;
-import com.peratonlabs.closure.eop2.video.requester.Command;
 import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
-import io.undertow.websockets.core.WebSocketChannel;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Transcoder implements Runnable
 {
-    private static HashMap<String, Transcoder> clients = new HashMap<String, Transcoder>();
-    
     private Request request;
-    private Sender sender;
     private Thread worker;
     private LinkedBlockingQueue<Mat> queue = new LinkedBlockingQueue<Mat>();
     
-    private Transcoder(Request request) {
+    public Transcoder(String id) {
+        this.request = new Request(id);
+    }
+    
+    public Transcoder(Request request) {
         this.request = request;
     }
     
-    public static void updateRequest(Request request) {
-        Transcoder transcoder = clients.get(request.getId());
-        if (transcoder == null) {
-            transcoder = new Transcoder(request);
-            clients.put(request.getId(), transcoder);
-            return;
-        }
-        transcoder.request.update(request);
-    }
-    
-//    public static void addClient(Request request) {
-//        Transcoder transcoder = new Transcoder(request);
-//        
-//        clients.put(request.getId(), transcoder);
-//    }
-    
-    public static void runCommand(Command cmdObj, WebSocketChannel channel) {
-        if (cmdObj == null) {
-            System.err.println("null request");
-            return;
-        }
-        
-        String id = cmdObj.getId();
-        Transcoder transcoder = clients.get(id);
-        if (transcoder == null) {
-            System.out.println("Warning: transcoder not found for " + id);
-            Request request = new Request(id);
-            updateRequest(request);
-            transcoder = clients.get(id);
-        }
-        
-        String command = cmdObj.getCommand();
-        if (command == null) {
-            System.err.println("null command for " + id);
-            return;
-        }
-        switch(command) {
-        case "start":
-            transcoder.sender = new Sender(channel);
-            transcoder.start();
-            VideoManager.startCamera();
-            break;
-        case "stop":
-            transcoder.sender.close();
-            transcoder.sender = null;
-            transcoder.interrupt();
-            break;
-        }
-        System.out.println(command + " command processed");                        
-    }
-    
-    public static void removeClient(Request request) {
-        removeClient(request.getId());
-    }
-    
-    public static void removeClient(String id) {
-        Transcoder transcoder = clients.remove(id);
-        transcoder.interrupt();
-    }
-
-    public static void broadcast(Mat mat) {
-        for (Transcoder transcoder : clients.values()) {
-            if (transcoder.sender != null)  // websocket not connected; don't queue the frame
-                transcoder.queue.add(mat);
-            //transcoder.show(mat);
-        }
-    }
-    
-    int cnt = 1;
     private boolean show(Mat mat) {
         Mat mmm = mat.clone();
         if (!request.isColor())
@@ -110,11 +39,7 @@ public class Transcoder implements Runnable
         Imgcodecs.imencode(".jpg", mmm, mem);
         byte[] memBytes = mem.toArray();
 
-        if (sender == null) {
-            System.err.println("no channel for " + request.getId());
-            return false;
-        }
-        sender.send(memBytes);
+        VideoRequester.send(request.getId(), memBytes);
         
         if (request.getDelay() > 0) {
             try {
@@ -183,6 +108,18 @@ public class Transcoder implements Runnable
                 break;
             }
         }
+    }
+    
+    public void add(Mat mat) {
+        queue.add(mat);
+    }
+
+    public Request getRequest() {
+        return request;
+    }
+
+    public void setRequest(Request request) {
+        this.request = request;
     }
 }
 

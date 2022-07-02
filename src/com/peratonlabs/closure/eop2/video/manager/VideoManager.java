@@ -9,14 +9,20 @@
  */
 package com.peratonlabs.closure.eop2.video.manager;
 
-import com.peratonlabs.closure.eop2.VideoServer;
+import java.util.HashMap;
+
+import org.opencv.core.Mat;
+
 import com.peratonlabs.closure.eop2.camera.CameraReader;
 import com.peratonlabs.closure.eop2.camera.CameraType;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
 public class VideoManager
 {
+    private static HashMap<String, Transcoder> clients = new HashMap<String, Transcoder>();
+    
     private static VideoManager instance;
     private static CameraReader camera;
     
@@ -27,17 +33,71 @@ public class VideoManager
     private int cameraDevId = 0;
     
     public static void main(final String[] args) {
-        VideoManager manager = VideoManager.getInstance();
-
-        VideoServer closure = VideoServer.getInstance();
-        closure.start();
+        VideoRequester.start();
         
+        VideoManager manager = VideoManager.getInstance();
         manager.getOpts(args);
     }
     
+    // from VideoRequester
     public static void handleRequest(Request request) {
-        // Do permission checking here
-        Transcoder.updateRequest(request);
+        if (request == null) {
+            System.err.println("null request");
+            return;
+        }
+        
+        String id = request.getId();
+        Transcoder transcoder = clients.get(id);
+        if (transcoder == null) {
+            transcoder = new Transcoder(id);
+            clients.put(id, transcoder);
+        }
+        
+        String cmd = request.getCommand();
+        if (cmd == null) {
+            // Do permission checking here
+            updateRequest(transcoder, request);
+        }
+        else {
+            runCommand(transcoder, request);
+        }
+    }
+    
+    private static void updateRequest(Transcoder transcoder, Request request) {
+        transcoder.getRequest().update(request);
+    }
+    
+    private static void runCommand(Transcoder transcoder, Request request) {
+        String command = request.getCommand();
+        if (command == null) {
+            System.err.println("null command for " + request.getId());
+            return;
+        }
+        switch(command) {
+        case "start":
+            transcoder.start();
+            startCamera();
+            break;
+        case "stop":
+            transcoder.interrupt();
+            break;
+        }
+        System.out.println("VideoManager: " + command + " command processed");                        
+    }
+    
+    public static void removeClient(Request request) {
+        removeClient(request.getId());
+    }
+    
+    public static void removeClient(String id) {
+        Transcoder transcoder = clients.remove(id);
+        transcoder.interrupt();
+    }
+
+    public static void broadcast(Mat mat) {
+        for (Transcoder transcoder : clients.values()) {
+            transcoder.add(mat);
+        }
     }
     
     public static VideoManager getInstance() {
