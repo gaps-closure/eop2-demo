@@ -17,5 +17,11 @@
 	<classpathentry kind="lib" path="lib/xnio-api-3.8.0.Final.jar"/>
 	<classpathentry kind="lib" path="lib/xnio-nio-3.8.0.Final.jar"/>
 	<classpathentry kind="lib" path="lib/gson-2.8.0.jar"/>
+	<classpathentry kind="lib" path="lib/webserver.jar"/>
+	<classpathentry kind="lib" path="lib/javax.websocket-client-api.jar"/>
+	<classpathentry kind="lib" path="lib/javax.websocket-server-api.jar"/>
+	<classpathentry kind="lib" path="lib/servlet.jar"/>
+	<classpathentry kind="lib" path="lib/wskt.jar"/>
+	<classpathentry kind="lib" path="lib/class-scanner.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
