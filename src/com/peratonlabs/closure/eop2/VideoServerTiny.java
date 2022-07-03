@@ -1,7 +1,12 @@
 package com.peratonlabs.closure.eop2;
 
-public class VideoServerTiny {
-    public static void main(String... args) {
+import io.undertow.Undertow;
+
+public class VideoServerTiny 
+{
+    private static VideoServerTiny instance;
+    
+    public void serve() {
         class MyServ extends Acme.Serve.Serve {
             // Overriding method for public access
             public void setMappingTable(PathTreeDictionary mappingtable) { 
@@ -40,5 +45,17 @@ public class VideoServerTiny {
             }
         }));
         srv.serve();
+    }
+    
+    public static VideoServerTiny getInstance() {
+        if (instance == null) {
+            instance = new VideoServerTiny();
+        }
+        return instance;
+    }
+    
+    public void start() {
+        VideoServerTiny server = getInstance();
+        server.serve();
     }
 }

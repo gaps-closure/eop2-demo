@@ -15,12 +15,12 @@ import java.util.HashMap;
 
 import javax.websocket.Session;
 
-import com.peratonlabs.closure.eop2.VideoServer;
+import com.peratonlabs.closure.eop2.VideoServerTiny;
 import com.peratonlabs.closure.eop2.video.manager.VideoManager;
 
 public class VideoRequester
 {
-    private static VideoServer server;
+    private static VideoServerTiny server;
     private static HashMap<String, VideoRequester> clients = new HashMap<String, VideoRequester>();
     
     private String id;
@@ -52,7 +52,7 @@ public class VideoRequester
         if (server != null)
             return;
         
-        server = VideoServer.getInstance();
+        server = new VideoServerTiny();
         server.start();
     }
     
