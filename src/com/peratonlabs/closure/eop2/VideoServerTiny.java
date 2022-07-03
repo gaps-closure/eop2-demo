@@ -36,7 +36,7 @@ public class VideoServerTiny
         srv.arguments = properties;
         srv.addDefaultServlets(null); // optional file servlet
         srv.addWebsocketProvider();  // enable websocket
-//        srv.addServlet("/myservlet", new MyServlet()); // optional
+        srv.addServlet("/request", new VideoServlet()); // optional
         // the pattern above is exact match, use /myservlet/* for mapping any path startting with /myservlet (Since 1.93)
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
