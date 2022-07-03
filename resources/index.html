@@ -153,7 +153,7 @@
             alert("Your browser does not support Websockets. (Use Chrome)");
             return;
         }
-        socket = new WebSocket("ws://localhost:8080/video");
+        socket = new WebSocket("ws://localhost:8080/video/" + id.value);
         socket.onmessage = function(m) {
             let blob = m.data;
             //renderImage(dCtx, blob);
