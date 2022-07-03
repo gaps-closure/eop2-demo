@@ -13,11 +13,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
+import javax.websocket.Session;
+
 import com.peratonlabs.closure.eop2.VideoServer;
 import com.peratonlabs.closure.eop2.video.manager.VideoManager;
-
-import io.undertow.websockets.core.WebSocketChannel;
-import io.undertow.websockets.core.WebSockets;
 
 public class VideoRequester
 {
@@ -25,14 +24,14 @@ public class VideoRequester
     private static HashMap<String, VideoRequester> clients = new HashMap<String, VideoRequester>();
     
     private String id;
-    private WebSocketChannel channel;
+    private Session channel;
 
     private VideoRequester(String id) {
         this.id = id;
     }
     
     // south bound
-    public static void handleMessage(Request request, WebSocketChannel channel) {
+    public static void handleMessage(Request request, Session channel) {
         String id = request.getId();
         VideoRequester client = clients.get(id);
         if (client == null) {
@@ -66,7 +65,7 @@ public class VideoRequester
         }
             
         try {
-            WebSockets.sendBinaryBlocking(ByteBuffer.wrap(data), client.getChannel());
+            client.getChannel().getBasicRemote().sendBinary(ByteBuffer.wrap(data));
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -74,7 +73,7 @@ public class VideoRequester
         }
     }
     
-    private void onMessage(Request request, WebSocketChannel channel) {
+    private void onMessage(Request request, Session channel) {
         String command = request.getCommand();
         if (command == null) {
             System.err.println("null command for " + id);
@@ -100,11 +99,11 @@ public class VideoRequester
         System.out.println(this.getClass().getSimpleName() + ": " + command + " command processed");                        
     }
     
-    public WebSocketChannel getChannel() {
+    public Session getChannel() {
         return channel;
     }
 
-    public void setChannel(WebSocketChannel channel) {
+    public void setChannel(Session channel) {
         this.channel = channel;
     }
 }
