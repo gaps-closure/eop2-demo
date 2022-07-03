@@ -1,6 +1,6 @@
 package com.peratonlabs.closure.eop2;
 
-public class Test {
+public class VideoServerTiny {
     public static void main(String... args) {
         class MyServ extends Acme.Serve.Serve {
             // Overriding method for public access
