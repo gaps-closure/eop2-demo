@@ -1,12 +1,11 @@
 package com.peratonlabs.closure.eop2;
 
-import io.undertow.Undertow;
-
 public class VideoServerTiny 
 {
     private static VideoServerTiny instance;
     
     public void serve() {
+        @SuppressWarnings("serial")
         class MyServ extends Acme.Serve.Serve {
             // Overriding method for public access
             public void setMappingTable(PathTreeDictionary mappingtable) { 
