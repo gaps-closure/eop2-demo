@@ -63,7 +63,7 @@ public class VideoRequester
             System.err.println("no such client: " + id);
             return;
         }
-System.out.println(data.length);            
+           
         try {
             client.getChannel().getBasicRemote().sendBinary(ByteBuffer.wrap(data));
         }
