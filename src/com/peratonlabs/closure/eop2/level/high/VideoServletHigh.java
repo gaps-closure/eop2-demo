@@ -37,7 +37,7 @@ import javax.servlet.annotation.HandlesTypes;
     description = "A annotated servlet", 
     urlPatterns = { "/request" }, 
     initParams = { 
-        @WebInitParam(name = "level", value = "normal") 
+        @WebInitParam(name = "level", value = "high") 
     }
 )
 @ServletSecurity()

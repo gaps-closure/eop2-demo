@@ -21,7 +21,7 @@ import javax.servlet.annotation.WebInitParam;
     description = "An annotated servlet", 
     urlPatterns = { "/request" }, 
     initParams = { 
-        @WebInitParam(name = "level", value = "high") 
+        @WebInitParam(name = "level", value = "normal") 
     }
 )
 @ServletSecurity()
