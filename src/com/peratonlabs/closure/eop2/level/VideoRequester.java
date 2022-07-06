@@ -11,8 +11,6 @@ package com.peratonlabs.closure.eop2.level;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.websocket.Session;
 
@@ -22,6 +20,21 @@ public abstract class VideoRequester
 {
     protected String id;
     protected Session channel;
+
+    // north bound
+    public void send(byte[] data) {
+        try {
+            // the browser complains about invalid websocket response if 
+            // this just sends data as is or a clone of the exact size.
+            byte[] dataCopy = new byte[65536];
+            System.arraycopy(data, 0, dataCopy, 0, data.length);
+            channel.getBasicRemote().sendBinary(ByteBuffer.wrap(dataCopy));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            channel = null;
+        }
+    }
     
     protected void onMessage(Request request, Session channel) {
         String command = request.getCommand();
