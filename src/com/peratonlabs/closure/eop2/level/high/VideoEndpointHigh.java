@@ -43,6 +43,7 @@ public class VideoEndpointHigh
     @OnMessage
     public void onMessage(Session session, Request request) 
       throws IOException {
+        System.out.println("VideoEndpointHigh: " + request.toJson());
         VideoRequesterHigh.handleMessage(request, session);
     }
 

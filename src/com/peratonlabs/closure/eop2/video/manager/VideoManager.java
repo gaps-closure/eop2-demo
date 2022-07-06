@@ -86,7 +86,7 @@ public class VideoManager
     private static void runCommand(Transcoder transcoder, Request request) {
         String command = request.getCommand();
         if (command == null) {
-            System.err.println("null command for " + request.getId());
+            System.err.println("VideoManager: null command for " + request.getId());
             return;
         }
         switch(command) {
