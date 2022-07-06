@@ -1,4 +1,4 @@
-package com.peratonlabs.closure.eop2;
+package com.peratonlabs.closure.eop2.high;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.peratonlabs.closure.eop2.video.requester.Request;
-import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -43,7 +42,7 @@ import javax.servlet.annotation.HandlesTypes;
     }
 )
 @ServletSecurity()
-public class VideoServlet extends HttpServlet 
+public class VideoServletHigh extends HttpServlet 
 {
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter writer = response.getWriter();
@@ -65,7 +64,7 @@ public class VideoServlet extends HttpServlet
 
         System.out.println(jb.toString());
         Request req = Request.fromJson(jb.toString());
-        VideoRequester.handleRequest(req);
+        VideoRequesterHigh.handleRequest(req);
         
         PrintWriter writer = response.getWriter();
         writer.println("<html>OK</html>");

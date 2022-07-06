@@ -15,9 +15,10 @@ import org.opencv.core.Mat;
 
 import com.peratonlabs.closure.eop2.camera.CameraReader;
 import com.peratonlabs.closure.eop2.camera.CameraType;
+import com.peratonlabs.closure.eop2.high.VideoRequesterHigh;
+import com.peratonlabs.closure.eop2.normal.VideoRequester;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 import com.peratonlabs.closure.eop2.video.requester.Request;
-import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
 public class VideoManager
 {
@@ -36,10 +37,15 @@ public class VideoManager
     }
     
     public void loop() {
+        VideoRequesterHigh.start(config.getWebroot());
         VideoRequester.start(config.getWebroot());
+        
         while (true) {
+            Request requestHigh = VideoRequesterHigh.getRequest();
+            handleRequest(true, requestHigh);
+            
             Request request = VideoRequester.getRequest();
-            handleRequest(request);
+            handleRequest(false, request);
             
             try {
                 Thread.sleep(1000);
@@ -51,7 +57,7 @@ public class VideoManager
     }
     
     // from VideoRequester
-    public static void handleRequest(Request request) {
+    public static void handleRequest(boolean high, Request request) {
         if (request == null) {
             return;
         }
@@ -59,7 +65,7 @@ public class VideoManager
         String id = request.getId();
         Transcoder transcoder = transcoders.get(id);
         if (transcoder == null) {
-            transcoder = new Transcoder(id);
+            transcoder = new Transcoder(high, id);
             transcoders.put(id, transcoder);
         }
         
@@ -127,6 +133,8 @@ public class VideoManager
         Config config = manager.getConfig();
         camera = new CameraReader(config);
         camera.start();
+        
+        System.out.println("Camera started");
     }
     
     public static void stopCamera() {
@@ -138,6 +146,8 @@ public class VideoManager
         
         camera.interrupt();
         camera = null;
+        
+        System.out.println("Camera stopped");
     }
     
     private void getOpts(String[] args) {

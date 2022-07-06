@@ -9,7 +9,7 @@
  *
  * Jul 2, 2022
  */
-package com.peratonlabs.closure.eop2;
+package com.peratonlabs.closure.eop2.normal;
 
 import java.io.IOException;
 import javax.websocket.OnClose;
@@ -23,7 +23,6 @@ import javax.websocket.server.ServerEndpoint;
 import com.peratonlabs.closure.eop2.video.requester.Request;
 import com.peratonlabs.closure.eop2.video.requester.RequestDecoder;
 import com.peratonlabs.closure.eop2.video.requester.RequestEncoder;
-import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
 @ServerEndpoint( 
     value="/video/{id}", 

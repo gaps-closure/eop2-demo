@@ -1,8 +1,8 @@
-package com.peratonlabs.closure.eop2;
+package com.peratonlabs.closure.eop2.high;
 
-public class VideoServerTiny implements Runnable
+public class VideoServerHigh implements Runnable
 {
-    private static VideoServerTiny instance;
+    private static VideoServerHigh instance;
     private String webroot;
     
     public void serve() {
@@ -30,13 +30,13 @@ public class VideoServerTiny implements Runnable
         srv.setMappingTable(aliases);
         // setting properties for the server, and exchangeable Acceptors
         java.util.Properties properties = new java.util.Properties();
-        properties.put("port", 8080);
+        properties.put("port", 8081);
         properties.setProperty(Acme.Serve.Serve.ARG_NOHUP, "nohup");
         properties.setProperty("acceptorImpl", "Acme.Serve.SelectorAcceptor"); // this acceptor is requireed for websocket support
         srv.arguments = properties;
         srv.addDefaultServlets(null); // optional file servlet
         srv.addWebsocketProvider();  // enable websocket
-        srv.addServlet("/request", new VideoServlet()); // optional
+        srv.addServlet("/request", new VideoServletHigh()); // optional
         // the pattern above is exact match, use /myservlet/* for mapping any path startting with /myservlet (Since 1.93)
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
@@ -47,15 +47,15 @@ public class VideoServerTiny implements Runnable
         srv.serve();
     }
     
-    public static VideoServerTiny getInstance() {
+    public static VideoServerHigh getInstance() {
         if (instance == null) {
-            instance = new VideoServerTiny();
+            instance = new VideoServerHigh();
         }
         return instance;
     }
     
     public void start(String webroot) {
-        VideoServerTiny server = getInstance();
+        VideoServerHigh server = getInstance();
         server.webroot = webroot;
         
         Thread thread = new Thread(server);

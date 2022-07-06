@@ -7,7 +7,7 @@
  *
  * Jun 26, 2022
  */
-package com.peratonlabs.closure.eop2.video.requester;
+package com.peratonlabs.closure.eop2.normal;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -16,11 +16,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.websocket.Session;
 
-import com.peratonlabs.closure.eop2.VideoServerTiny;
+import com.peratonlabs.closure.eop2.video.requester.Request;
 
 public class VideoRequester
 {
-    private static VideoServerTiny server;
+    private static VideoServer server;
     private static HashMap<String, VideoRequester> clients = new HashMap<String, VideoRequester>();
     
     private String id;
@@ -68,7 +68,7 @@ public class VideoRequester
         if (server != null)
             return;
         
-        server = new VideoServerTiny();
+        server = new VideoServer();
         server.start(webroot);
     }
     

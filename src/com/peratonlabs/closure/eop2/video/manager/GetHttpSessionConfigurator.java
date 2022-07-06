@@ -1,4 +1,4 @@
-package com.peratonlabs.closure.eop2;
+package com.peratonlabs.closure.eop2.video.manager;
 
 import javax.servlet.http.HttpSession;
 import javax.websocket.HandshakeResponse;

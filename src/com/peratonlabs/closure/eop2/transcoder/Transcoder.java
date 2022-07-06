@@ -2,8 +2,9 @@ package com.peratonlabs.closure.eop2.transcoder;
 
 import org.opencv.core.*;
 
+import com.peratonlabs.closure.eop2.high.VideoRequesterHigh;
+import com.peratonlabs.closure.eop2.normal.VideoRequester;
 import com.peratonlabs.closure.eop2.video.requester.Request;
-import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -15,14 +16,16 @@ public class Transcoder implements Runnable
     private Request request;
     private Thread worker;
     private LinkedBlockingQueue<Mat> queue = new LinkedBlockingQueue<Mat>();
+    private boolean high;
     
-    public Transcoder(String id) {
+    public Transcoder(boolean high, String id) {
+        this.high = high;
         this.request = new Request(id);
     }
     
-    public Transcoder(Request request) {
-        this.request = request;
-    }
+//    public Transcoder(Request request) {
+//        this.request = request;
+//    }
     
     private boolean show(Mat mat) {
         Mat mmm = mat.clone();
@@ -39,7 +42,10 @@ public class Transcoder implements Runnable
         Imgcodecs.imencode(".jpg", mmm, mem);
         byte[] memBytes = mem.toArray();
 
-        VideoRequester.send(request.getId(), memBytes);
+        if (high)
+            VideoRequesterHigh.send(request.getId(), memBytes);
+        else
+            VideoRequester.send(request.getId(), memBytes);
         
         if (request.getDelay() > 0) {
             try {
