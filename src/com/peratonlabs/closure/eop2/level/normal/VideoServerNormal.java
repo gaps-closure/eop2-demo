@@ -6,10 +6,9 @@ public class VideoServerNormal extends VideoServer implements Runnable
 {
     private static boolean started = false;
     
-    private VideoServerNormal(int port, String webroot, VideoServletNormal servlet) {
+    private VideoServerNormal(int port, String webroot) {
         this.port = port;
         this.webroot = webroot;
-        this.servlet = servlet;
     }
     
     public static void startServer(int port, String webroot) {
@@ -17,8 +16,7 @@ public class VideoServerNormal extends VideoServer implements Runnable
             return;
         }
         
-        VideoServletNormal servlet = new VideoServletNormal();
-        VideoServerNormal instance = new VideoServerNormal(port, webroot, servlet);
+        VideoServerNormal instance = new VideoServerNormal(port, webroot);
         Thread thread = new Thread(instance);
         thread.start();
         

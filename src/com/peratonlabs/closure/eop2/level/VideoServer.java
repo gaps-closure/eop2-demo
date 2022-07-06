@@ -39,7 +39,7 @@ public abstract class VideoServer implements Runnable
         srv.arguments = properties;
         srv.addDefaultServlets(null); // optional file servlet
         srv.addWebsocketProvider();  // enable websocket
-        srv.addServlet("/request", servlet); // optional
+//        srv.addServlet("/request", servlet); // optional
         // the pattern above is exact match, use /myservlet/* for mapping any path startting with /myservlet (Since 1.93)
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
