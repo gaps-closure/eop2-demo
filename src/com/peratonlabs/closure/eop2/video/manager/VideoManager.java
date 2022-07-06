@@ -21,7 +21,7 @@ import com.peratonlabs.closure.eop2.video.requester.VideoRequester;
 
 public class VideoManager
 {
-    private static HashMap<String, Transcoder> clients = new HashMap<String, Transcoder>();
+    private static HashMap<String, Transcoder> transcoders = new HashMap<String, Transcoder>();
     
     private static VideoManager instance;
     private static CameraReader camera;
@@ -32,21 +32,35 @@ public class VideoManager
         VideoManager manager = VideoManager.getInstance();
         manager.getOpts(args);
         
-        VideoRequester.start(manager.getConfig().getWebroot());
+        manager.loop();
+    }
+    
+    public void loop() {
+        VideoRequester.start(config.getWebroot());
+        while (true) {
+            Request request = VideoRequester.getRequest();
+            handleRequest(request);
+            
+            try {
+                Thread.sleep(1000);
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
     
     // from VideoRequester
     public static void handleRequest(Request request) {
         if (request == null) {
-            System.err.println("null request");
             return;
         }
         
         String id = request.getId();
-        Transcoder transcoder = clients.get(id);
+        Transcoder transcoder = transcoders.get(id);
         if (transcoder == null) {
             transcoder = new Transcoder(id);
-            clients.put(id, transcoder);
+            transcoders.put(id, transcoder);
         }
         
         String cmd = request.getCommand();
@@ -76,7 +90,7 @@ public class VideoManager
             break;
         case "stop":
             transcoder.interrupt();
-            clients.remove(request.getId());
+            transcoders.remove(request.getId());
             stopCamera();
             break;
         }
@@ -88,12 +102,12 @@ public class VideoManager
     }
     
     public static void removeClient(String id) {
-        Transcoder transcoder = clients.remove(id);
+        Transcoder transcoder = transcoders.remove(id);
         transcoder.interrupt();
     }
 
     public static void broadcast(Mat mat) {
-        for (Transcoder transcoder : clients.values()) {
+        for (Transcoder transcoder : transcoders.values()) {
             transcoder.add(mat);
         }
     }
@@ -104,7 +118,7 @@ public class VideoManager
         }
         return instance;
     }
-    
+
     public static void startCamera() {
         if (camera != null)
             return;
@@ -116,7 +130,7 @@ public class VideoManager
     }
     
     public static void stopCamera() {
-        if (!clients.isEmpty())
+        if (!transcoders.isEmpty())
             return;
         
         if (camera == null)

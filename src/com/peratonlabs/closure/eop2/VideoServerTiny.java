@@ -1,10 +1,11 @@
 package com.peratonlabs.closure.eop2;
 
-public class VideoServerTiny 
+public class VideoServerTiny implements Runnable
 {
     private static VideoServerTiny instance;
+    private String webroot;
     
-    public void serve(String webroot) {
+    public void serve() {
         @SuppressWarnings("serial")
         class MyServ extends Acme.Serve.Serve {
             // Overriding method for public access
@@ -55,6 +56,14 @@ public class VideoServerTiny
     
     public void start(String webroot) {
         VideoServerTiny server = getInstance();
-        server.serve(webroot);
+        server.webroot = webroot;
+        
+        Thread thread = new Thread(server);
+        thread.start();
+    }
+
+    @Override
+    public void run() {
+        serve();
     }
 }

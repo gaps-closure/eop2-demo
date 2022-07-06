@@ -12,11 +12,11 @@ package com.peratonlabs.closure.eop2.video.requester;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.websocket.Session;
 
 import com.peratonlabs.closure.eop2.VideoServerTiny;
-import com.peratonlabs.closure.eop2.video.manager.VideoManager;
 
 public class VideoRequester
 {
@@ -25,6 +25,7 @@ public class VideoRequester
     
     private String id;
     private Session channel;
+    private static LinkedBlockingQueue<Request> queue = new LinkedBlockingQueue<Request>();
 
     private VideoRequester(String id) {
         this.id = id;
@@ -44,7 +45,22 @@ public class VideoRequester
     
     // south bound
     public static void handleRequest(Request request) {
-        VideoManager.handleRequest(request);
+        // VideoManager.handleRequest(request);
+        queue.add(request); // wait for video manager to retrieve it
+    }
+    
+    // VideoManager retrieves requests by calling this function
+    public static Request getRequest() {
+        if (!queue.isEmpty()) {
+            try {
+                Request request = queue.take();
+                return request;
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
     
     // north bound
