@@ -7,7 +7,7 @@
  *
  * Jun 26, 2022
  */
-package com.peratonlabs.closure.eop2.high;
+package com.peratonlabs.closure.eop2.level.normal;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -18,25 +18,25 @@ import javax.websocket.Session;
 
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
-public class VideoRequesterHigh
+public class VideoRequesterNormal
 {
-    private static VideoServerHigh server;
-    private static HashMap<String, VideoRequesterHigh> clients = new HashMap<String, VideoRequesterHigh>();
+    private static VideoServerNormal server;
+    private static HashMap<String, VideoRequesterNormal> clients = new HashMap<String, VideoRequesterNormal>();
     
     private String id;
     private Session channel;
     private static LinkedBlockingQueue<Request> queue = new LinkedBlockingQueue<Request>();
 
-    private VideoRequesterHigh(String id) {
+    private VideoRequesterNormal(String id) {
         this.id = id;
     }
     
     // south bound
     public static void handleMessage(Request request, Session channel) {
         String id = request.getId();
-        VideoRequesterHigh client = clients.get(id);
+        VideoRequesterNormal client = clients.get(id);
         if (client == null) {
-            client = new VideoRequesterHigh(id);
+            client = new VideoRequesterNormal(id);
             clients.put(request.getId(), client);
         }
         client.onMessage(request, channel);
@@ -68,13 +68,13 @@ public class VideoRequesterHigh
         if (server != null)
             return;
         
-        server = new VideoServerHigh();
+        server = new VideoServerNormal();
         server.start(webroot);
     }
     
     // north bound
     public static void send(String id, byte[] data) {
-        VideoRequesterHigh client = clients.get(id);
+        VideoRequesterNormal client = clients.get(id);
         if (client == null) {
             System.err.println("no such client: " + id);
             return;

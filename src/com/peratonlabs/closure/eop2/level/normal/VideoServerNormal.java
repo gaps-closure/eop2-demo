@@ -1,8 +1,8 @@
-package com.peratonlabs.closure.eop2.normal;
+package com.peratonlabs.closure.eop2.level.normal;
 
-public class VideoServer implements Runnable
+public class VideoServerNormal implements Runnable
 {
-    private static VideoServer instance;
+    private static VideoServerNormal instance;
     private String webroot;
     
     public void serve() {
@@ -36,7 +36,7 @@ public class VideoServer implements Runnable
         srv.arguments = properties;
         srv.addDefaultServlets(null); // optional file servlet
         srv.addWebsocketProvider();  // enable websocket
-        srv.addServlet("/request", new VideoServlet()); // optional
+        srv.addServlet("/request", new VideoServletNormal()); // optional
         // the pattern above is exact match, use /myservlet/* for mapping any path startting with /myservlet (Since 1.93)
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
@@ -47,15 +47,15 @@ public class VideoServer implements Runnable
         srv.serve();
     }
     
-    public static VideoServer getInstance() {
+    public static VideoServerNormal getInstance() {
         if (instance == null) {
-            instance = new VideoServer();
+            instance = new VideoServerNormal();
         }
         return instance;
     }
     
     public void start(String webroot) {
-        VideoServer server = getInstance();
+        VideoServerNormal server = getInstance();
         server.webroot = webroot;
         
         Thread thread = new Thread(server);

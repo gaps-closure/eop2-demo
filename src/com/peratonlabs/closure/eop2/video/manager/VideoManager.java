@@ -15,8 +15,8 @@ import org.opencv.core.Mat;
 
 import com.peratonlabs.closure.eop2.camera.CameraReader;
 import com.peratonlabs.closure.eop2.camera.CameraType;
-import com.peratonlabs.closure.eop2.high.VideoRequesterHigh;
-import com.peratonlabs.closure.eop2.normal.VideoRequester;
+import com.peratonlabs.closure.eop2.level.high.VideoRequesterHigh;
+import com.peratonlabs.closure.eop2.level.normal.VideoRequesterNormal;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
@@ -38,13 +38,13 @@ public class VideoManager
     
     public void loop() {
         VideoRequesterHigh.start(config.getWebroot());
-        VideoRequester.start(config.getWebroot());
+        VideoRequesterNormal.start(config.getWebroot());
         
         while (true) {
             Request requestHigh = VideoRequesterHigh.getRequest();
             handleRequest(true, requestHigh);
             
-            Request request = VideoRequester.getRequest();
+            Request request = VideoRequesterNormal.getRequest();
             handleRequest(false, request);
             
             try {

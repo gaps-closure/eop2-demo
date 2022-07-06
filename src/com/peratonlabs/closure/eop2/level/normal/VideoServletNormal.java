@@ -1,4 +1,4 @@
-package com.peratonlabs.closure.eop2.normal;
+package com.peratonlabs.closure.eop2.level.normal;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,7 +42,7 @@ import javax.servlet.annotation.HandlesTypes;
     }
 )
 @ServletSecurity()
-public class VideoServlet extends HttpServlet 
+public class VideoServletNormal extends HttpServlet 
 {
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter writer = response.getWriter();
@@ -64,7 +64,7 @@ public class VideoServlet extends HttpServlet
 
         System.out.println(jb.toString());
         Request req = Request.fromJson(jb.toString());
-        VideoRequester.handleRequest(req);
+        VideoRequesterNormal.handleRequest(req);
         
         PrintWriter writer = response.getWriter();
         writer.println("<html>OK</html>");

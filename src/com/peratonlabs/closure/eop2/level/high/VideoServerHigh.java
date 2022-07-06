@@ -1,4 +1,4 @@
-package com.peratonlabs.closure.eop2.high;
+package com.peratonlabs.closure.eop2.level.high;
 
 public class VideoServerHigh implements Runnable
 {

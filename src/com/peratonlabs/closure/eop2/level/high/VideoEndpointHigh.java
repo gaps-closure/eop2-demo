@@ -9,7 +9,7 @@
  *
  * Jul 2, 2022
  */
-package com.peratonlabs.closure.eop2.high;
+package com.peratonlabs.closure.eop2.level.high;
 
 import java.io.IOException;
 import javax.websocket.OnClose;

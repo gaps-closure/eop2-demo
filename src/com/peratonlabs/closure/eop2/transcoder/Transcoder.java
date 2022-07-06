@@ -2,8 +2,8 @@ package com.peratonlabs.closure.eop2.transcoder;
 
 import org.opencv.core.*;
 
-import com.peratonlabs.closure.eop2.high.VideoRequesterHigh;
-import com.peratonlabs.closure.eop2.normal.VideoRequester;
+import com.peratonlabs.closure.eop2.level.high.VideoRequesterHigh;
+import com.peratonlabs.closure.eop2.level.normal.VideoRequesterNormal;
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
 import org.opencv.imgcodecs.Imgcodecs;
@@ -45,7 +45,7 @@ public class Transcoder implements Runnable
         if (high)
             VideoRequesterHigh.send(request.getId(), memBytes);
         else
-            VideoRequester.send(request.getId(), memBytes);
+            VideoRequesterNormal.send(request.getId(), memBytes);
         
         if (request.getDelay() > 0) {
             try {

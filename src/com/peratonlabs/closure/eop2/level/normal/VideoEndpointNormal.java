@@ -9,7 +9,7 @@
  *
  * Jul 2, 2022
  */
-package com.peratonlabs.closure.eop2.normal;
+package com.peratonlabs.closure.eop2.level.normal;
 
 import java.io.IOException;
 import javax.websocket.OnClose;
@@ -28,7 +28,7 @@ import com.peratonlabs.closure.eop2.video.requester.RequestEncoder;
     value="/video/{id}", 
     decoders = RequestDecoder.class, 
     encoders = RequestEncoder.class )
-public class VideoEndpoint 
+public class VideoEndpointNormal 
 {
     String id;
     
@@ -43,7 +43,7 @@ public class VideoEndpoint
     @OnMessage
     public void onMessage(Session session, Request request) 
       throws IOException {
-        VideoRequester.handleMessage(request, session);
+        VideoRequesterNormal.handleMessage(request, session);
     }
 
     @OnClose

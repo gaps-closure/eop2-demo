@@ -7,7 +7,7 @@
  *
  * Jun 26, 2022
  */
-package com.peratonlabs.closure.eop2.normal;
+package com.peratonlabs.closure.eop2.level.high;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -18,25 +18,25 @@ import javax.websocket.Session;
 
 import com.peratonlabs.closure.eop2.video.requester.Request;
 
-public class VideoRequester
+public class VideoRequesterHigh
 {
-    private static VideoServer server;
-    private static HashMap<String, VideoRequester> clients = new HashMap<String, VideoRequester>();
+    private static VideoServerHigh server;
+    private static HashMap<String, VideoRequesterHigh> clients = new HashMap<String, VideoRequesterHigh>();
     
     private String id;
     private Session channel;
     private static LinkedBlockingQueue<Request> queue = new LinkedBlockingQueue<Request>();
 
-    private VideoRequester(String id) {
+    private VideoRequesterHigh(String id) {
         this.id = id;
     }
     
     // south bound
     public static void handleMessage(Request request, Session channel) {
         String id = request.getId();
-        VideoRequester client = clients.get(id);
+        VideoRequesterHigh client = clients.get(id);
         if (client == null) {
-            client = new VideoRequester(id);
+            client = new VideoRequesterHigh(id);
             clients.put(request.getId(), client);
         }
         client.onMessage(request, channel);
@@ -68,13 +68,13 @@ public class VideoRequester
         if (server != null)
             return;
         
-        server = new VideoServer();
+        server = new VideoServerHigh();
         server.start(webroot);
     }
     
     // north bound
     public static void send(String id, byte[] data) {
-        VideoRequester client = clients.get(id);
+        VideoRequesterHigh client = clients.get(id);
         if (client == null) {
             System.err.println("no such client: " + id);
             return;
