@@ -23,7 +23,8 @@ public class Config
     private int cameraDevId = 0;
     
     private String webroot = "/home/tchen/eop2/eop2-demo/resources";
-    private int port = 8080; 
+    private int normalPort = 8080; 
+    private int highPort = 8081; 
     
     public Config() {
         // KEEP this to make sure default values are used if they are not specified in the json file.
@@ -88,11 +89,19 @@ public class Config
         this.webroot = webroot;
     }
 
-    public int getPort() {
-        return port;
+    public int getNormalPort() {
+        return normalPort;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public void setNormalPort(int normalPort) {
+        this.normalPort = normalPort;
+    }
+
+    public int getHighPort() {
+        return highPort;
+    }
+
+    public void setHighPort(int highPort) {
+        this.highPort = highPort;
     }
 }

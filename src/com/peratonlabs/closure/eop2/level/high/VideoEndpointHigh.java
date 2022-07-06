@@ -25,7 +25,7 @@ import com.peratonlabs.closure.eop2.video.requester.RequestDecoder;
 import com.peratonlabs.closure.eop2.video.requester.RequestEncoder;
 
 @ServerEndpoint( 
-    value="/videoYYY/{id}", 
+    value="/videoH/{id}", 
     decoders = RequestDecoder.class, 
     encoders = RequestEncoder.class )
 public class VideoEndpointHigh 

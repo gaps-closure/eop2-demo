@@ -37,8 +37,8 @@ public class VideoManager
     }
     
     public void loop() {
-        VideoRequesterHigh.start(config.getWebroot());
-        VideoRequesterNormal.start(config.getPort(), config.getWebroot());
+        VideoRequesterHigh.start(config.getHighPort(), config.getWebroot());
+        VideoRequesterNormal.start(config.getNormalPort(), config.getWebroot());
         
         while (true) {
             Request requestHigh = VideoRequesterHigh.getRequest();

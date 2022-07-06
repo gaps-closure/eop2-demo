@@ -37,8 +37,7 @@ import javax.servlet.annotation.HandlesTypes;
     description = "A annotated servlet", 
     urlPatterns = { "/request" }, 
     initParams = { 
-        @WebInitParam(name = "foo", value = "Hello "),
-        @WebInitParam(name = "bar", value = " World!") 
+        @WebInitParam(name = "level", value = "normal") 
     }
 )
 @ServletSecurity()
@@ -62,7 +61,7 @@ public class VideoServletHigh extends HttpServlet
             e.printStackTrace();
         }
 
-        System.out.println(jb.toString());
+        System.out.println("High: " + jb.toString());
         Request req = Request.fromJson(jb.toString());
         VideoRequesterHigh.handleRequest(req);
         
