@@ -26,18 +26,13 @@ public class VideoManager
     private static VideoManager instance;
     private static CameraReader camera;
     
-    private CameraType cameraType = CameraType.WEB_CAMERA;
-    private String cameraAddr = "127.0.0.1";
-    private String cameraUser = "admin";
-    private String cameraPassword = "Boosters";
-    private int cameraDevId = 0;
-    private String webroot = "/home/tchen/eop2/eop2-demo/resources";
-    
+    private Config config;
+
     public static void main(final String[] args) {
         VideoManager manager = VideoManager.getInstance();
         manager.getOpts(args);
         
-        VideoRequester.start(manager.webroot);
+        VideoRequester.start(manager.getConfig().getWebroot());
     }
     
     // from VideoRequester
@@ -114,7 +109,9 @@ public class VideoManager
         if (camera != null)
             return;
             
-        camera = new CameraReader();
+        VideoManager manager = VideoManager.getInstance();
+        Config config = manager.getConfig();
+        camera = new CameraReader(config);
         camera.start();
     }
     
@@ -137,52 +134,50 @@ public class VideoManager
             switch (arg) {
             case "--cameraType":
             case "-t":
-                cameraType = CameraType.getByName(args[++i]);
+                if (config == null) {
+                    config = new Config();
+                }
+                config.setCameraType(CameraType.getByName(args[++i]));
                 break;
             case "--cameraAddr":
             case "-a":
-                cameraAddr = args[++i];
+                if (config == null) {
+                    config = new Config();
+                }
+                config.setCameraAddr(args[++i]);
                 break;
             case "--cameraDev":
             case "-d":
-                cameraDevId = Integer.parseInt(args[++i]);
+                if (config == null) {
+                    config = new Config();
+                }
+                config.setCameraDevId(Integer.parseInt(args[++i]));
                 break;
             case "--webRoot":
-            case "-r":
-                webroot = args[++i];
+            case "-w":
+                if (config == null) {
+                    config = new Config();
+                }
+                config.setWebroot(args[++i]);
+                break;
+            case "--config":
+            case "-c":
+                if (config != null) {
+                    System.err.println("WARNING: command line arguments specified before -c will be overriden by those in " + args[i + 1]);
+                }
+                config = Config.load(args[++i]);
                 break;
             default:
                 System.err.println("unknown option: " + arg);
                 break;
             }
         }
-    }
-    
-    public String getCameraURL() {
-        return "rtsp://" + cameraUser + ":" + cameraPassword + "@" + cameraAddr;
-    }
-    
-    public CameraType getCameraType() {
-        return cameraType;
+        if (config == null) {  // all defaults
+            config = new Config();
+        }
     }
 
-    public void setCameraType(CameraType cameraType) {
-        this.cameraType = cameraType;
-    }
-
-    public String getCameraAddr() {
-        return cameraAddr;
-    }
-
-    public void setCameraAddr(String cameraAddr) {
-        this.cameraAddr = cameraAddr;
-    }
-
-    public int getCameraDevId() {
-        return cameraDevId;
-    }
-
-    public void setCameraDevId(int cameraDevId) {
-        this.cameraDevId = cameraDevId;
+    public Config getConfig() {
+        return config;
     }
 }

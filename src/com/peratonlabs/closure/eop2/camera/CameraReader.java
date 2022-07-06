@@ -20,14 +20,27 @@ import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
+
+import com.peratonlabs.closure.eop2.video.manager.Config;
 import com.peratonlabs.closure.eop2.video.manager.VideoManager;
 
 public class CameraReader implements Runnable
 {
+    private CameraType type = CameraType.WEB_CAMERA;
+    private String addr = "127.0.0.1";
+    private String user = "admin";
+    private String password = "Boosters";
+    private int devId = 0;
+    
     private Thread worker;
     private AtomicBoolean running = new AtomicBoolean(true);
     
-    public CameraReader() {
+    public CameraReader(Config config) {
+        this.type = config.getCameraType();
+        this.devId = config.getCameraDevId();
+        this.addr = config.getCameraAddr();
+        this.user = config.getCameraUser();
+        this.password = config.getCameraPassword();
     }
     
     public void interrupt() {
@@ -48,20 +61,18 @@ public class CameraReader implements Runnable
     public void run() {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         
-        VideoManager manager = VideoManager.getInstance();
-        
         boolean resize = false;
         VideoCapture capture = null;
-        switch (manager.getCameraType()) {
+        switch (type) {
         case WEB_CAMERA:
-            capture = new VideoCapture(manager.getCameraDevId());
+            capture = new VideoCapture(devId);
             break;
         case IP_CAMERA:
-            capture = new VideoCapture(manager.getCameraURL());
+            capture = new VideoCapture(getCameraURL());
             resize = true;
             break;
         default:
-            System.err.println("Unsupported camera type: " + manager.getCameraType());
+            System.err.println("Unsupported camera type: " + type);
             System.exit(1);
             break;
         }
@@ -79,6 +90,10 @@ public class CameraReader implements Runnable
 //            HighGui.waitKey(1);
         }
         capture.release();
+    }
+    
+    public String getCameraURL() {
+        return "rtsp://" + user + ":" + password + "@" + addr;
     }
     
     public BufferedImage toBufferedImage(Mat m) {
@@ -158,9 +173,4 @@ public class CameraReader implements Runnable
         }
       }
       */
-
-    public static void main(String[] args) {
-        CameraReader camera = new CameraReader();
-        camera.run();
-    }
 }
