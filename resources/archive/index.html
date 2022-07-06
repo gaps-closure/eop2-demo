@@ -47,14 +47,14 @@
           </div>
           <div class="row">
             <label style="width: 250x; text-align: right; margin-right: 0.4cm;">Scale Percentage(%)</label>
-            <input type="range" min="1" max="100" value="100" id="scalePercentage" name="scalePercentage"
+            <input type="range" min="1" max="100" value="100" id="myRange" name="scalePercentage"
                        oninput="this.nextElementSibling.value = this.value"  class="slider-width100">
             <output>100</output>
           </div>
           
           <div class="row">
             <label></label>
-            <input type="button" value="Set Quality"  id="submit" style="height: 48px; width: 128px;"/>
+            <input type="submit" value="Set Quality"  id="submit" style="height: 48px; width: 128px;"/>
           </div>          
            
           <div class="row">
@@ -87,25 +87,20 @@
     const id = document.getElementById("id");
     id.value = uid();
     const btn = document.getElementById("btn");
-    const setQuality = document.getElementById("submit");
 
     var socket;
     var playing = false;
     
-    function play() {
-        playing = true;
-
-        btn.value = "Stop";
-        btn.style.background="url('image/stop.png') no-repeat";
-        //caption.innerHTML = "Playing";
-        //btn.style.background='#00ff00';
-        connect();
-    } 
-    
     btn.addEventListener("click", () => {
     // function toggleButton() {
         if (!playing) {
-            play();
+            playing = true;
+
+            btn.value = "Stop";
+            btn.style.background="url('image/stop.png') no-repeat";
+            //caption.innerHTML = "Playing";
+            //btn.style.background='#00ff00';
+            connect();
         }
         else {
             playing = false;
@@ -116,21 +111,6 @@
             // btn.style.background='#ff0000';
             disconnect();
         }
-    })
-    
-    setQuality.addEventListener("click", () => {
-        if (!playing)
-            play();
-        
-          var reqJson = {};
-          reqJson["id"] = id.value;
-          reqJson["color"] = document.getElementById("color").checked;
-          reqJson["blur"] = document.getElementById("blur").checked;
-          reqJson["scale"] = document.getElementById("scale").checked;
-          reqJson["scalePercentage"] = document.getElementById("scalePercentage").value;
-          
-          console.log(reqJson);
-          socket.send(JSON.stringify(reqJson));
     })
     
     function convertImageToGray(img) {

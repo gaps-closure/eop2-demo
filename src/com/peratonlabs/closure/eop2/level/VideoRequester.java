@@ -26,8 +26,9 @@ public abstract class VideoRequester
         try {
             // the browser complains about invalid websocket response if 
             // this just sends data as is or a clone of the exact size.
-            byte[] dataCopy = new byte[65536];
+            byte[] dataCopy = new byte[100000];
             System.arraycopy(data, 0, dataCopy, 0, data.length);
+           
             channel.getBasicRemote().sendBinary(ByteBuffer.wrap(dataCopy));
         }
         catch (IOException e) {
@@ -39,7 +40,7 @@ public abstract class VideoRequester
     protected void onMessage(Request request, Session channel) {
         String command = request.getCommand();
         if (command == null) {
-            System.err.println("null command for " + id);
+            // change video quality only
             return;
         }
         switch(command) {

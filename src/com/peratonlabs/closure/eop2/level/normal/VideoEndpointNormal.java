@@ -43,6 +43,7 @@ public class VideoEndpointNormal
     @OnMessage
     public void onMessage(Session session, Request request) 
       throws IOException {
+        System.out.println("VideoEndpointNormal: " + request.toJson());
         VideoRequesterNormal.handleMessage(request, session);
     }
 
