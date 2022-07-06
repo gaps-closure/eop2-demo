@@ -48,12 +48,12 @@ public class VideoRequester
     }
     
     // north bound
-    public static void start() {
+    public static void start(String webroot) {
         if (server != null)
             return;
         
         server = new VideoServerTiny();
-        server.start();
+        server.start(webroot);
     }
     
     // north bound
@@ -63,9 +63,13 @@ public class VideoRequester
             System.err.println("no such client: " + id);
             return;
         }
-           
+
         try {
-            client.getChannel().getBasicRemote().sendBinary(ByteBuffer.wrap(data));
+            // the browser complains about invalid websocket response if 
+            // this just sends data as is or a clone of the exact size.
+            byte[] dataCopy = new byte[65536];
+            System.arraycopy(data, 0, dataCopy, 0, data.length);
+            client.getChannel().getBasicRemote().sendBinary(ByteBuffer.wrap(dataCopy));
         }
         catch (IOException e) {
             e.printStackTrace();

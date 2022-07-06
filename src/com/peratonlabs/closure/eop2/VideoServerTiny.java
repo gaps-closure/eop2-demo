@@ -4,7 +4,7 @@ public class VideoServerTiny
 {
     private static VideoServerTiny instance;
     
-    public void serve() {
+    public void serve(String webroot) {
         @SuppressWarnings("serial")
         class MyServ extends Acme.Serve.Serve {
             // Overriding method for public access
@@ -24,7 +24,7 @@ public class VideoServerTiny
         final MyServ srv = new MyServ();
         // setting aliases, for an optional file servlet
         Acme.Serve.Serve.PathTreeDictionary aliases = new Acme.Serve.Serve.PathTreeDictionary();
-        aliases.put("/*", new java.io.File("/home/tchen/eop2/eop2-demo/resources"));
+        aliases.put("/*", new java.io.File(webroot));
         //  note cast name will depend on the class name, since it is anonymous class
         srv.setMappingTable(aliases);
         // setting properties for the server, and exchangeable Acceptors
@@ -53,8 +53,8 @@ public class VideoServerTiny
         return instance;
     }
     
-    public void start() {
+    public void start(String webroot) {
         VideoServerTiny server = getInstance();
-        server.serve();
+        server.serve(webroot);
     }
 }

@@ -31,12 +31,13 @@ public class VideoManager
     private String cameraUser = "admin";
     private String cameraPassword = "Boosters";
     private int cameraDevId = 0;
+    private String webroot = "/home/tchen/eop2/eop2-demo/resources";
     
     public static void main(final String[] args) {
-        VideoRequester.start();
-        
         VideoManager manager = VideoManager.getInstance();
         manager.getOpts(args);
+        
+        VideoRequester.start(manager.webroot);
     }
     
     // from VideoRequester
@@ -145,6 +146,10 @@ public class VideoManager
             case "--cameraDev":
             case "-d":
                 cameraDevId = Integer.parseInt(args[++i]);
+                break;
+            case "--webRoot":
+            case "-r":
+                webroot = args[++i];
                 break;
             default:
                 System.err.println("unknown option: " + arg);
