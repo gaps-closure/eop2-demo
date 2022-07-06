@@ -2,8 +2,15 @@ package com.peratonlabs.closure.eop2.level.normal;
 
 public class VideoServerNormal implements Runnable
 {
-    private static VideoServerNormal instance;
-    private String webroot;
+    private static boolean started = false;
+    
+    protected String webroot;
+    protected int port = 8080;
+    
+    private VideoServerNormal(int port, String webroot) {
+        this.port = port;
+        this.webroot = webroot;
+    }
     
     public void serve() {
         @SuppressWarnings("serial")
@@ -30,7 +37,7 @@ public class VideoServerNormal implements Runnable
         srv.setMappingTable(aliases);
         // setting properties for the server, and exchangeable Acceptors
         java.util.Properties properties = new java.util.Properties();
-        properties.put("port", 8080);
+        properties.put("port", port);
         properties.setProperty(Acme.Serve.Serve.ARG_NOHUP, "nohup");
         properties.setProperty("acceptorImpl", "Acme.Serve.SelectorAcceptor"); // this acceptor is requireed for websocket support
         srv.arguments = properties;
@@ -47,19 +54,16 @@ public class VideoServerNormal implements Runnable
         srv.serve();
     }
     
-    public static VideoServerNormal getInstance() {
-        if (instance == null) {
-            instance = new VideoServerNormal();
+    public static void startServer(int port, String webroot) {
+        if (started) {
+            return;
         }
-        return instance;
-    }
-    
-    public void start(String webroot) {
-        VideoServerNormal server = getInstance();
-        server.webroot = webroot;
         
-        Thread thread = new Thread(server);
+        VideoServerNormal instance = new VideoServerNormal(port, webroot);
+        Thread thread = new Thread(instance);
         thread.start();
+        
+        started = true;
     }
 
     @Override

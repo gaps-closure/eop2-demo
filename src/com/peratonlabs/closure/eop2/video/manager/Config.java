@@ -21,7 +21,9 @@ public class Config
     private String cameraUser = "admin";
     private String cameraPassword = "Boosters";
     private int cameraDevId = 0;
+    
     private String webroot = "/home/tchen/eop2/eop2-demo/resources";
+    private int port = 8080; 
     
     public Config() {
         // KEEP this to make sure default values are used if they are not specified in the json file.
@@ -84,5 +86,13 @@ public class Config
 
     public void setWebroot(String webroot) {
         this.webroot = webroot;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 }

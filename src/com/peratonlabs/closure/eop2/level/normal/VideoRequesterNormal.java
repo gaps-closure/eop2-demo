@@ -19,7 +19,7 @@ import com.peratonlabs.closure.eop2.video.requester.Request;
 
 public class VideoRequesterNormal extends VideoRequester
 {
-    private static VideoServerNormal server;
+    private static boolean serverStarted = false;
     private static HashMap<String, VideoRequesterNormal> clients = new HashMap<String, VideoRequesterNormal>();
     private static LinkedBlockingQueue<Request> queue = new LinkedBlockingQueue<Request>();
 
@@ -60,12 +60,12 @@ public class VideoRequesterNormal extends VideoRequester
     }
     
     // north bound
-    public static void start(String webroot) {
-        if (server != null)
+    public static void start(int port, String webroot) {
+        if (serverStarted)
             return;
         
-        server = new VideoServerNormal();
-        server.start(webroot);
+        VideoServerNormal.startServer(port, webroot);
+        serverStarted = true;
     }
     
     // north bound
