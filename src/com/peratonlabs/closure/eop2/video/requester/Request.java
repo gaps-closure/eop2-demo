@@ -8,12 +8,12 @@ public class Request
     private String id;
     private String command;
     
-    private Integer frameRate;
+    private int frameRate;
     private long delay;
     private boolean color = true;
     private boolean blur;
     private boolean scale;
-    private Integer scalePercentage;
+    private int scalePercentage;
     
     private static Gson gson = new GsonBuilder()
 //            .registerTypeAdapterFactory(typeAdapterFactory)
@@ -45,7 +45,7 @@ public class Request
         return frameRate;
     }
 
-    public void setFrameRate(Integer frameRate) {
+    public void setFrameRate(int frameRate) {
         this.frameRate = frameRate;
     }
 
@@ -81,11 +81,11 @@ public class Request
         this.scale = scale;
     }
 
-    public Integer getScalePercentage() {
+    public int getScalePercentage() {
         return scalePercentage;
     }
 
-    public void setScalePercentage(Integer scalePercentage) {
+    public void setScalePercentage(int scalePercentage) {
         this.scalePercentage = scalePercentage;
     }
 

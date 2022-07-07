@@ -27,7 +27,7 @@ public class VideoRequesterNormal extends VideoRequester
         this.id = id;
     }
     
-    // south bound
+    // south bound from VideoEndpointNormal
     public static void handleMessage(Request request, Session channel) {
         String id = request.getId();
         VideoRequesterNormal client = clients.get(id);
@@ -36,12 +36,7 @@ public class VideoRequesterNormal extends VideoRequester
             clients.put(request.getId(), client);
         }
         client.onMessage(request, channel);
-        handleRequest(request);
-    }
-    
-    // south bound
-    public static void handleRequest(Request request) {
-        // VideoManager.handleRequest(request);
+        
         queue.add(request); // wait for video manager to retrieve it
     }
     
@@ -59,7 +54,7 @@ public class VideoRequesterNormal extends VideoRequester
         return null;
     }
     
-    // north bound
+    // north bound from VideoManager
     public static void start(int port, String webroot) {
         if (serverStarted)
             return;
@@ -68,7 +63,7 @@ public class VideoRequesterNormal extends VideoRequester
         serverStarted = true;
     }
     
-    // north bound
+    // north bound from Transcoder
     public static void send(String id, byte[] data) {
         VideoRequesterNormal client = clients.get(id);
         if (client == null) {
