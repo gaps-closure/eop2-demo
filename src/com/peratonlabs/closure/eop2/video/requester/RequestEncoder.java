@@ -21,7 +21,7 @@ public class RequestEncoder implements Encoder.Text<Request> {
 
     private static Gson gson = new Gson();
 
-    @Override
+    // @Override
     public String encode(Request message) throws EncodeException {
         return gson.toJson(message);
     }

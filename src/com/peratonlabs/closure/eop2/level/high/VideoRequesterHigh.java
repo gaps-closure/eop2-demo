@@ -16,6 +16,7 @@ import javax.websocket.Session;
 
 import com.peratonlabs.closure.eop2.level.VideoRequester;
 import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.annotations.*;
 
 public class VideoRequesterHigh extends VideoRequester
 {
@@ -41,6 +42,7 @@ public class VideoRequesterHigh extends VideoRequester
     }
     
     // VideoManager retrieves requests by calling this function
+    @OrangePurpleCallable
     public static Request getRequest() {
         if (!queue.isEmpty()) {
             try {
@@ -55,6 +57,7 @@ public class VideoRequesterHigh extends VideoRequester
     }
     
     // north bound from VideoManager
+    @OrangePurpleCallable
     public static void start(int port, String webroot) {
         if (serverStarted)
             return;
@@ -64,6 +67,7 @@ public class VideoRequesterHigh extends VideoRequester
     }
     
     // north bound from Transcoder
+    @OrangePurpleCallable
     public static void send(String id, byte[] data) {
         VideoRequesterHigh client = clients.get(id);
         if (client == null) {

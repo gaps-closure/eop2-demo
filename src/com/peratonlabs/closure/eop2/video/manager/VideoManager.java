@@ -19,6 +19,7 @@ import com.peratonlabs.closure.eop2.level.high.VideoRequesterHigh;
 import com.peratonlabs.closure.eop2.level.normal.VideoRequesterNormal;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.annotations.*;
 
 public class VideoManager
 {
@@ -103,14 +104,14 @@ public class VideoManager
         System.out.println("VideoManager: " + command + " command processed");                        
     }
     
-    public static void removeClient(Request request) {
-        removeClient(request.getId());
-    }
+    // public static void removeClient(Request request) {
+    //     removeClient(request.getId());
+    // }
     
-    public static void removeClient(String id) {
-        Transcoder transcoder = transcoders.remove(id);
-        transcoder.interrupt();
-    }
+    // public static void removeClient(String id) {
+    //     Transcoder transcoder = transcoders.remove(id);
+    //     transcoder.interrupt();
+    // }
 
     public static void broadcast(Mat mat) {
         for (Transcoder transcoder : transcoders.values()) {

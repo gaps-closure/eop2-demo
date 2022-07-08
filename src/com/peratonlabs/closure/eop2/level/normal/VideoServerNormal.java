@@ -2,6 +2,8 @@ package com.peratonlabs.closure.eop2.level.normal;
 
 import com.peratonlabs.closure.eop2.level.VideoServer;
 
+import com.peratonlabs.closure.annotations.*;
+
 public class VideoServerNormal extends VideoServer implements Runnable
 {
     private static boolean started = false;

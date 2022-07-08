@@ -5,6 +5,7 @@ import org.opencv.core.*;
 import com.peratonlabs.closure.eop2.level.high.VideoRequesterHigh;
 import com.peratonlabs.closure.eop2.level.normal.VideoRequesterNormal;
 import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.annotations.*;
 
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -17,6 +18,7 @@ public class Transcoder implements Runnable
     
     private Request request;
     private Thread worker;
+    @PurpleShareable
     private LinkedBlockingQueue<Mat> queue = new LinkedBlockingQueue<Mat>();
     private boolean high;
     

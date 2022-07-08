@@ -45,15 +45,15 @@ public enum CameraType {
         return type;
     }
 
-    public static CameraType get(String status) {
-        try {
-            Integer i = Integer.parseInt(status);
-            return get(i);
-        }
-        catch (NumberFormatException e) {
-            return null;
-        }
-    }
+    // public static CameraType get(String status) {
+    //     try {
+    //         Integer i = Integer.parseInt(status);
+    //         return get(i);
+    //     }
+    //     catch (NumberFormatException e) {
+    //         return null;
+    //     }
+    // }
 
     public static CameraType getByName(String status) {
         for (CameraType det : lookup.values())

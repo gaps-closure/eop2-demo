@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
                   "  \"level\":\"purple\"," + 
                   "  \"cdf\":[" + 
                   "    {" + 
-                  "      \"remotelevel\":\"orange\"," + 
+                  "      \"remotelevel\":\"green\"," + 
                   "      \"direction\":\"bidirectional\"," + 
                   "      \"guarddirective\":{" + 
                   "        \"operation\":\"allow\"" + 
@@ -22,5 +22,5 @@ import java.lang.annotation.Target;
                   "    }" + 
                   "  ]" +
                   "}")
-public @interface PurpleOrangeConstructable {}
+public @interface PurpleGreenConstructable {}
 
