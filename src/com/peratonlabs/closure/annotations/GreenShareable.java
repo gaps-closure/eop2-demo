@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Cledef(clejson = "{" + 
-                  "  \"level\":\"orange\"," + 
+                  "  \"level\":\"green\"," + 
                   "  \"cdf\":[" + 
                   "    {" + 
                   "      \"remotelevel\":\"purple\"," + 
@@ -19,5 +19,5 @@ import java.lang.annotation.Target;
                   "    }" + 
                   "  ]" + 
                   "}")
-public @interface OrangeShareable {}
+public @interface GreenShareable {}
 

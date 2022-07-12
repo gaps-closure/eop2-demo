@@ -24,9 +24,9 @@ public abstract class VideoRequester
     // north bound
     public void send(byte[] data) {
         try {
-            // the browser complains about invalid websocket response if 
+            // the browser complains about 'invalid websocket response' if 
             // this just sends data as is or a clone of the exact size.
-            byte[] dataCopy = new byte[100000];
+            byte[] dataCopy = new byte[data.length + 50480];
             System.arraycopy(data, 0, dataCopy, 0, data.length);
            
             channel.getBasicRemote().sendBinary(ByteBuffer.wrap(dataCopy));

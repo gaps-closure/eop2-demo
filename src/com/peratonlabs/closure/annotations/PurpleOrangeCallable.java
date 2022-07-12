@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
                   "      }," + 
                   "      \"argtaints\":[]," +
                   "      \"rettaints\":[\"TAG_RESPONSE_GETVALUE\"]," +
-                  "      \"codtaints\":[\"com.peratonlabs.closure.testprog.example1.annotations.Purple\"]" +
+                  "      \"codtaints\":[\"com.peratonlabs.closure.annotations.Purple\"]" +
                   "    }" + 
                   "  ]" +
                   "}")

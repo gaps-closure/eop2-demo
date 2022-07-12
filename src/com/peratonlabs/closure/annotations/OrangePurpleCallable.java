@@ -5,22 +5,22 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.CONSTRUCTOR)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Cledef(clejson = "{" + 
-                  "  \"level\":\"purple\"," + 
+                  "  \"level\":\"orange\"," + 
                   "  \"cdf\":[" + 
                   "    {" + 
-                  "      \"remotelevel\":\"orange\"," + 
+                  "      \"remotelevel\":\"purple\"," + 
                   "      \"direction\":\"bidirectional\"," + 
                   "      \"guarddirective\":{" + 
                   "        \"operation\":\"allow\"" + 
                   "      }," + 
                   "      \"argtaints\":[]," +
-                  "      \"rettaints\":[\"TAG_RESPONSE_EXTRA\"]," +
-                  "      \"codtaints\":[\"com.peratonlabs.closure.annotations.Purple\"]" +
+                  "      \"rettaints\":[\"TAG_RESPONSE_GETVALUE\"]," +
+                  "      \"codtaints\":[\"com.peratonlabs.closure.annotations.Orange\"]" +
                   "    }" + 
                   "  ]" +
                   "}")
-public @interface PurpleOrangeConstructable {}
+public @interface OrangePurpleCallable {}
 

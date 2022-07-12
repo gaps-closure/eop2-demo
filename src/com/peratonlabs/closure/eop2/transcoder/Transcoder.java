@@ -5,6 +5,7 @@ import org.opencv.core.*;
 import com.peratonlabs.closure.eop2.level.high.VideoRequesterHigh;
 import com.peratonlabs.closure.eop2.level.normal.VideoRequesterNormal;
 import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.annotations.*;
 
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -13,19 +14,22 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Transcoder implements Runnable
 {
+    private static final int MAX_NORMAL_SCALE = 75;
+    
     private Request request;
     private Thread worker;
+    @PurpleShareable
     private LinkedBlockingQueue<Mat> queue = new LinkedBlockingQueue<Mat>();
     private boolean high;
     
     public Transcoder(boolean high, String id) {
         this.high = high;
         this.request = new Request(id);
+        
+        System.out.println(high);
+        if (!high)
+            request.setScalePercentage(MAX_NORMAL_SCALE);
     }
-    
-//    public Transcoder(Request request) {
-//        this.request = request;
-//    }
     
     private boolean show(Mat mat) {
         Mat mmm = mat.clone();
@@ -35,8 +39,18 @@ public class Transcoder implements Runnable
         if (request.isBlur())
             mmm = addBlur(mmm, false);
         
-        if (request.isScale())
+        if (request.isScale()) {
+            if (request.getScalePercentage() > MAX_NORMAL_SCALE) {
+                request.setScalePercentage(MAX_NORMAL_SCALE);
+            }
             mmm = changeImageScale(mmm, request);
+        }
+        else if (!high) {
+            if (request.getScalePercentage() >= MAX_NORMAL_SCALE) {
+                request.setScalePercentage(MAX_NORMAL_SCALE);
+                mmm = changeImageScale(mmm, request);
+            }
+        }
         
         MatOfByte mem = new MatOfByte();
         Imgcodecs.imencode(".jpg", mmm, mem);

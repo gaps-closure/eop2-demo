@@ -16,6 +16,7 @@ import javax.websocket.Session;
 
 import com.peratonlabs.closure.eop2.level.VideoRequester;
 import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.annotations.*;
 
 public class VideoRequesterNormal extends VideoRequester
 {
@@ -27,7 +28,7 @@ public class VideoRequesterNormal extends VideoRequester
         this.id = id;
     }
     
-    // south bound
+    // south bound from VideoEndpointNormal
     public static void handleMessage(Request request, Session channel) {
         String id = request.getId();
         VideoRequesterNormal client = clients.get(id);
@@ -36,16 +37,12 @@ public class VideoRequesterNormal extends VideoRequester
             clients.put(request.getId(), client);
         }
         client.onMessage(request, channel);
-        handleRequest(request);
-    }
-    
-    // south bound
-    public static void handleRequest(Request request) {
-        // VideoManager.handleRequest(request);
+        
         queue.add(request); // wait for video manager to retrieve it
     }
     
     // VideoManager retrieves requests by calling this function
+    @GreenPurpleCallable
     public static Request getRequest() {
         if (!queue.isEmpty()) {
             try {
@@ -59,7 +56,8 @@ public class VideoRequesterNormal extends VideoRequester
         return null;
     }
     
-    // north bound
+    // north bound from VideoManager
+    @GreenPurpleCallable
     public static void start(int port, String webroot) {
         if (serverStarted)
             return;
@@ -68,7 +66,8 @@ public class VideoRequesterNormal extends VideoRequester
         serverStarted = true;
     }
     
-    // north bound
+    // north bound from Transcoder
+    @GreenPurpleCallable
     public static void send(String id, byte[] data) {
         VideoRequesterNormal client = clients.get(id);
         if (client == null) {
