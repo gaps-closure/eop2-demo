@@ -24,20 +24,25 @@ export GREEN_JAVA_CMD="${SCRIPTS}/runClosure.sh Green_E"
 tmux start-server
 tmux new-session -d -s $session -n run
 
-tmux send-keys "${PURPLE_HAL_CMD}" C-m
+tmux send-keys "$PURPLE_HAL_CMD" C-m
 
 tmux splitw -h -p 50
 tmux send-keys "$ORANGE_HAL_CMD" C-m 
 
-if [ -z "${NO_JAVA}" ]; then
-    tmux splitw -v -p 50
-    
-    tmux send-keys "$ORANGE_JAVA_CMD" C-m 
+tmux splitw -h -p 50
+tmux send-keys "$GREEN_HAL_CMD" C-m 
 
-    tmux selectp -t 0
-    tmux splitw -v -p 50
-    tmux send-keys "sleep 1; $PURPLE_JAVA_CMD" C-m
-fi
+tmux selectp -t 0
+tmux splitw -v -p 50
+tmux send-keys "$PURPLE_JAVA_CMD" C-m 
+
+tmux selectp -t 2
+tmux splitw -v -p 50
+tmux send-keys "$ORANGE_JAVA_CMD" C-m
+
+tmux selectp -t 4
+tmux splitw -v -p 50
+tmux send-keys "$GREEN_JAVA_CMD" C-m
 
 tmux select-window -t $session:0
 tmux attach-session -t $session
