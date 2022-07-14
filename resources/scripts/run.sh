@@ -3,8 +3,10 @@
 session="run"
 
 HAL_DIR=~/gaps/hal
-JAGA_HAL_CFG=sample_zmq_bw_direct_jaga_green.cfg
-LIONO_HAL_CFG=sample_zmq_bw_direct_liono_orange.cfg
+#JAGA_HAL_CFG=sample_zmq_bw_direct_jaga_green.cfg
+#LIONO_HAL_CFG=sample_zmq_bw_direct_liono_orange.cfg
+JAGA_HAL_CFG=sample_zmq_bw_direct_jaga_green_3enc.cfg
+LIONO_HAL_CFG=sample_zmq_bw_direct_liono_orange_3enc.cfg
 
 SCRIPTS=/tmp/xdcc/Purple_E/resources/scripts
 
