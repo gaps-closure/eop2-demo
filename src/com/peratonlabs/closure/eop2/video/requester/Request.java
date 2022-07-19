@@ -1,10 +1,14 @@
 package com.peratonlabs.closure.eop2.video.requester;
 
+import java.io.Serializable;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-public class Request
+public class Request implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+    
     private String id;
     private String command;
     
