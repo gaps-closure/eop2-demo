@@ -15,9 +15,12 @@ SCRIPTS=/tmp/xdcc/Purple_E/resources/scripts
 
 #ssh liono pkill hal
 
-export PURPLE_HAL_CMD="${HAL} -l 1 $CFG_DIR/${PURPLE_CFG}"
-export ORANGE_HAL_CMD="${HAL} -l 1 $CFG_DIR/${ORANGE_CFG}"
-export GREEN_HAL_CMD="${HAL} -l 1 $CFG_DIR/${GREEN_CFG}"
+#export PURPLE_HAL_CMD="${HAL} -l 0 $CFG_DIR/${PURPLE_CFG} > /tmp/purple.log 2>&1"
+#export ORANGE_HAL_CMD="${HAL} -l 0 $CFG_DIR/${ORANGE_CFG} > /tmp/orange.log 2>&1"
+#export GREEN_HAL_CMD="${HAL} -l 0 $CFG_DIR/${GREEN_CFG} > /tmp/green.log 2>&1"
+export PURPLE_HAL_CMD="${HAL} -l 0 $CFG_DIR/${PURPLE_CFG}"
+export ORANGE_HAL_CMD="${HAL} -l 0 $CFG_DIR/${ORANGE_CFG}"
+export GREEN_HAL_CMD="${HAL} -l 0 $CFG_DIR/${GREEN_CFG}"
 
 export PURPLE_JAVA_CMD="${SCRIPTS}/runClosure.sh Purple_E"
 export ORANGE_JAVA_CMD="${SCRIPTS}/runClosure.sh Orange_E"
@@ -36,7 +39,7 @@ tmux send-keys "$GREEN_HAL_CMD" C-m
 
 tmux selectp -t 0
 tmux splitw -v -p 50
-tmux send-keys "$PURPLE_JAVA_CMD" C-m 
+tmux send-keys "sleep 3; $PURPLE_JAVA_CMD" C-m 
 
 tmux selectp -t 2
 tmux splitw -v -p 50
