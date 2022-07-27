@@ -5,6 +5,7 @@ import org.opencv.core.*;
 import com.peratonlabs.closure.eop2.level.high.VideoRequesterHigh;
 import com.peratonlabs.closure.eop2.level.normal.VideoRequesterNormal;
 import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.eop2.video.requester.RequestHigh;
 import com.peratonlabs.closure.annotations.*;
 
 import org.opencv.imgcodecs.Imgcodecs;
@@ -17,17 +18,24 @@ public class Transcoder implements Runnable
     private static final int MAX_NORMAL_SCALE = 75;
     
     private Request request;
+    private RequestHigh requestHigh;
     private Thread worker;
-    @PurpleShareable
+
+    
     private LinkedBlockingQueue<Mat> queue = new LinkedBlockingQueue<Mat>();
+    
+    @PurpleShareable
+    private Mat currFrame;
     private boolean high;
 
     // when partitioned, HalZmq will catch the interrupt and fail to exit run()
     private boolean interrupted = false;   
+
     
     public Transcoder(boolean high, String id) {
         this.high = high;
         this.request = new Request(id);
+        this.requestHigh = new RequestHigh(id);
         
         System.out.println(high);
         if (!high)
@@ -59,10 +67,40 @@ public class Transcoder implements Runnable
         Imgcodecs.imencode(".jpg", mmm, mem);
         byte[] memBytes = mem.toArray();
 
-        if (high)
-            VideoRequesterHigh.send(request.getId(), memBytes);
-        else
-            VideoRequesterNormal.send(request.getId(), memBytes);
+        VideoRequesterNormal.send(request.getId(), memBytes);
+        
+        if (request.getDelay() > 0) {
+            try {
+                Thread.sleep(request.getDelay());
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
+    private boolean showHigh(Mat mat) {
+        Mat mmm = mat.clone();
+        if (!requestHigh.isColor())
+            mmm = convertGrayScale(mmm);
+        
+        if (requestHigh.isBlur())
+            mmm = addBlur(mmm, false);
+        
+        if (request.isScale()) {
+            if (requestHigh.getScalePercentage() > MAX_NORMAL_SCALE) {
+                requestHigh.setScalePercentage(MAX_NORMAL_SCALE);
+            }
+            mmm = changeImageScaleHigh(mmm, requestHigh);
+        }
+
+        MatOfByte mem = new MatOfByte();
+        Imgcodecs.imencode(".jpg", mmm, mem);
+        byte[] memBytes = mem.toArray();
+
+        VideoRequesterHigh.send(requestHigh.getId(), memBytes);
+   
         
         if (request.getDelay() > 0) {
             try {
@@ -76,6 +114,13 @@ public class Transcoder implements Runnable
     }
     
     private Mat changeImageScale(Mat frame, Request request) {
+        double scale = request.getScalePercentage() / (double) 100;
+        Imgproc.resize(frame, frame, new Size(0, 0), scale, scale, Imgproc.INTER_AREA);
+
+        return frame;
+    }
+
+    private Mat changeImageScaleHigh(Mat frame, RequestHigh request) {
         double scale = request.getScalePercentage() / (double) 100;
         Imgproc.resize(frame, frame, new Size(0, 0), scale, scale, Imgproc.INTER_AREA);
 
@@ -124,11 +169,20 @@ public class Transcoder implements Runnable
     public void run() {
         while (true) {
             try {
-                Mat mat = queue.take();
+                currFrame = queue.take();
                 if (interrupted)
                     break;
-                if (!show(mat))
-                    break;
+                if (high)
+                {
+                    if (!showHigh(currFrame))
+                        break;
+                }
+                else
+                {
+                    if (!show(currFrame))
+                        break;
+                }
+                
             }
             catch (InterruptedException e) {
                 break;
@@ -145,8 +199,17 @@ public class Transcoder implements Runnable
         return request;
     }
 
+    public RequestHigh getRequestHigh() {
+        return requestHigh;
+    }
+
     public void setRequest(Request request) {
         this.request = request;
+    }
+
+
+    public void setRequestHigh(RequestHigh request) {
+        this.requestHigh = request;
     }
 }
 

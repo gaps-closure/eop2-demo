@@ -18,7 +18,17 @@ import java.lang.annotation.Target;
                   "      }," + 
                   "      \"argtaints\":[]," +
                   "      \"rettaints\":[\"TAG_RESPONSE_GETVALUE\"]," +
-                  "      \"codtaints\":[\"com.peratonlabs.closure.annotations.Green\"]" +
+                  "      \"codtaints\":[\"Green\"]" +
+                  "    }," + 
+                                    "    {" + 
+                  "      \"remotelevel\":\"green\"," + 
+                  "      \"direction\":\"bidirectional\"," + 
+                  "      \"guarddirective\":{" + 
+                  "        \"operation\":\"allow\"" + 
+                  "      }," + 
+                  "      \"argtaints\":[]," +
+                  "      \"rettaints\":[\"TAG_RESPONSE_GETVALUE\"]," +
+                  "      \"codtaints\":[\"Green\"]" +
                   "    }" + 
                   "  ]" +
                   "}")

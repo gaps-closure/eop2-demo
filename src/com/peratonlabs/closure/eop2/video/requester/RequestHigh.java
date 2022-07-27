@@ -1,16 +1,10 @@
 package com.peratonlabs.closure.eop2.video.requester;
 
-import java.io.Serializable;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import com.peratonlabs.closure.annotations.*;
-
-public class Request implements Serializable
+public class RequestHigh
 {
-    private static final long serialVersionUID = 1L;
-    
     private String id;
     private String command;
     
@@ -26,17 +20,15 @@ public class Request implements Serializable
             .setPrettyPrinting()
             .create();
     
-         
-    
-    public Request(String id) {
+    public RequestHigh(String id) {
         this.id = id;
     }
     
-    public static Request fromJson(String json) {
-        return gson.fromJson(json, Request.class);
+    public static RequestHigh fromJson(String json) {
+        return gson.fromJson(json, RequestHigh.class);
     }
     
-    public void update(Request request) {
+    public void update(RequestHigh request) {
         this.frameRate = request.frameRate;
         this.delay = request.delay;
         this.color = request.color;

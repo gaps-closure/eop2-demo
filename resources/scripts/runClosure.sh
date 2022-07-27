@@ -9,7 +9,7 @@ echo ----------------
 cd /tmp/xdcc/$1
 
 CLASSPATH=\
-dist/weaved-ClosureVideo.jar:\
+dist/weaved-TESTPROGRAM.jar:\
 dist/lib/class-scanner.jar:\
 dist/lib/javax.websocket-client-api.jar:\
 dist/lib/opencv-460.jar:\

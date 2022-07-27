@@ -18,8 +18,18 @@ import java.lang.annotation.Target;
                   "      }," + 
                   "      \"argtaints\":[]," +
                   "      \"rettaints\":[\"TAG_RESPONSE_GETVALUE\"]," +
-                  "      \"codtaints\":[\"com.peratonlabs.closure.annotations.Orange\"]" +
-                  "    }" + 
+                  "      \"codtaints\":[\"Orange\"]" +
+                  "    }," + 
+                  "    {" + 
+                  "      \"remotelevel\":\"orange\"," + 
+                  "      \"direction\":\"bidirectional\"," + 
+                  "      \"guarddirective\":{" + 
+                  "        \"operation\":\"allow\"" + 
+                  "      }," + 
+                  "      \"argtaints\":[]," +
+                  "      \"rettaints\":[\"TAG_RESPONSE_GETVALUE\"]," +
+                  "      \"codtaints\":[\"Orange\"]" +
+                  "    }" +
                   "  ]" +
                   "}")
 public @interface OrangePurpleCallable {}

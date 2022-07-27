@@ -20,14 +20,14 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
-import com.peratonlabs.closure.eop2.video.requester.Request;
-import com.peratonlabs.closure.eop2.video.requester.RequestDecoder;
-import com.peratonlabs.closure.eop2.video.requester.RequestEncoder;
+import com.peratonlabs.closure.eop2.video.requester.RequestHigh;
+import com.peratonlabs.closure.eop2.video.requester.RequestDecoderHigh;
+import com.peratonlabs.closure.eop2.video.requester.RequestEncoderHigh;
 
 @ServerEndpoint( 
     value="/videoH/{id}", 
-    decoders = RequestDecoder.class, 
-    encoders = RequestEncoder.class )
+    decoders = RequestDecoderHigh.class, 
+    encoders = RequestEncoderHigh.class )
 public class VideoEndpointHigh 
 {
     String id;
@@ -41,7 +41,7 @@ public class VideoEndpointHigh
     }
 
     @OnMessage
-    public void onMessage(Session session, Request request) 
+    public void onMessage(Session session, RequestHigh request) 
       throws IOException {
         System.out.println("VideoEndpointHigh: " + request.toJson());
         VideoRequesterHigh.handleMessage(request, session);

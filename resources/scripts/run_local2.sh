@@ -7,11 +7,11 @@ CFG_DIR=${HAL_DIR}/java-eop2-demo-hal
 
 HAL=${HAL_DIR}/daemon/hal
 
-PURPLE_CFG=hal_Purple_E.cfg
-ORANGE_CFG=hal_Orange_E.cfg
-GREEN_CFG=hal_Green_E.cfg
+PURPLE_CFG=hal_purple_E.cfg
+ORANGE_CFG=hal_orange_E.cfg
+GREEN_CFG=hal_green_E.cfg
 
-SCRIPTS=/tmp/xdcc/Purple_E/resources/scripts
+SCRIPTS=/tmp/xdcc/purple_E/resources/scripts
 
 #ssh liono pkill hal
 
@@ -22,9 +22,9 @@ export PURPLE_HAL_CMD="${HAL} -l 0 $CFG_DIR/${PURPLE_CFG}"
 export ORANGE_HAL_CMD="${HAL} -l 0 $CFG_DIR/${ORANGE_CFG}"
 export GREEN_HAL_CMD="${HAL} -l 0 $CFG_DIR/${GREEN_CFG}"
 
-export PURPLE_JAVA_CMD="${SCRIPTS}/runClosure.sh Purple_E"
-export ORANGE_JAVA_CMD="${SCRIPTS}/runClosure.sh Orange_E"
-export GREEN_JAVA_CMD="${SCRIPTS}/runClosure.sh Green_E"
+export PURPLE_JAVA_CMD="${SCRIPTS}/runClosure.sh purple_E"
+export ORANGE_JAVA_CMD="${SCRIPTS}/runClosure.sh orange_E"
+export GREEN_JAVA_CMD="${SCRIPTS}/runClosure.sh green_E"
 
 tmux start-server
 tmux new-session -d -s $session -n run

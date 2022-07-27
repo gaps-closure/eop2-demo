@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import javax.websocket.Session;
 
 import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.eop2.video.requester.RequestHigh;
 
 public abstract class VideoRequester
 {
@@ -28,7 +29,10 @@ public abstract class VideoRequester
             // this just sends data as is or a clone of the exact size.
             byte[] dataCopy = new byte[data.length + 50480];
             System.arraycopy(data, 0, dataCopy, 0, data.length);
-           
+
+            if (channel == null)  // channel has been closed
+               return;
+            
             channel.getBasicRemote().sendBinary(ByteBuffer.wrap(dataCopy));
         }
         catch (IOException e) {
@@ -38,6 +42,32 @@ public abstract class VideoRequester
     }
     
     protected void onMessage(Request request, Session channel) {
+        String command = request.getCommand();
+        if (command == null) {
+            // change video quality only
+            return;
+        }
+        switch(command) {
+        case "start":
+            this.channel = channel;
+            break;
+        case "stop":
+            try {
+                if (channel != null)
+                    channel.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            finally {
+                this.channel = null;
+            }
+            break;
+        }
+        System.out.println(this.getClass().getSimpleName() + ": " + command + " command processed");                        
+    }
+
+    protected void onMessageHigh(RequestHigh request, Session channel) {
         String command = request.getCommand();
         if (command == null) {
             // change video quality only

@@ -8,11 +8,13 @@ public class VideoServerNormal extends VideoServer implements Runnable
 {
     private static boolean started = false;
     
+    @GreenPurpleConstructable
     private VideoServerNormal(int port, String webroot) {
         this.port = port;
         this.webroot = webroot;
     }
     
+    @GreenPurpleCallable
     public static void startServer(int port, String webroot) {
         if (started) {
             return;

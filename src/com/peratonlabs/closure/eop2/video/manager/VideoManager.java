@@ -19,6 +19,7 @@ import com.peratonlabs.closure.eop2.level.high.VideoRequesterHigh;
 import com.peratonlabs.closure.eop2.level.normal.VideoRequesterNormal;
 import com.peratonlabs.closure.eop2.transcoder.Transcoder;
 import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.eop2.video.requester.RequestHigh;
 import com.peratonlabs.closure.annotations.*;
 
 public class VideoManager
@@ -42,8 +43,8 @@ public class VideoManager
         VideoRequesterNormal.start(config.getNormalPort(), config.getWebroot());
         
         while (true) {
-            Request requestHigh = VideoRequesterHigh.getRequest();
-            handleRequest(true, requestHigh);
+            RequestHigh requestHigh = VideoRequesterHigh.getRequest();
+            handleRequestHigh(true, requestHigh);
             
             Request request = VideoRequesterNormal.getRequest();
             handleRequest(false, request);
@@ -79,12 +80,59 @@ public class VideoManager
             runCommand(transcoder, request);
         }
     }
+
+    // from VideoRequester
+    public static void handleRequestHigh(boolean high, RequestHigh request) {
+        if (request == null) {
+            return;
+        }
+        
+        String id = request.getId();
+        Transcoder transcoder = transcoders.get(id);
+        if (transcoder == null) {
+            transcoder = new Transcoder(high, id);
+            transcoders.put(id, transcoder);
+        }
+        
+        String cmd = request.getCommand();
+        if (cmd == null) {
+            // Do permission checking here
+            updateRequestHigh(transcoder, request);
+        }
+        else {
+            runCommandHigh(transcoder, request);
+        }
+    }
     
     private static void updateRequest(Transcoder transcoder, Request request) {
         transcoder.getRequest().update(request);
     }
+
+    private static void updateRequestHigh(Transcoder transcoder, RequestHigh request) {
+        transcoder.getRequestHigh().update(request);
+    }
     
     private static void runCommand(Transcoder transcoder, Request request) {
+        String command = request.getCommand();
+        if (command == null) {
+            System.err.println("VideoManager: null command for " + request.getId());
+            return;
+        }
+        switch(command) {
+        case "start":
+            transcoder.start();
+            startCamera();
+            break;
+        case "stop":
+            transcoder.interrupt();
+            transcoders.remove(request.getId());
+            stopCamera();
+            break;
+        }
+        System.out.println("VideoManager: " + command + " command processed");                        
+    }
+
+    private static void runCommandHigh(Transcoder transcoder, RequestHigh request) {
         String command = request.getCommand();
         if (command == null) {
             System.err.println("VideoManager: null command for " + request.getId());

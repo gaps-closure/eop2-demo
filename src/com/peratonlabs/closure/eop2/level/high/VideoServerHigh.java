@@ -8,11 +8,13 @@ public class VideoServerHigh extends VideoServer implements Runnable
 {
     private static boolean started = false;
     
+    @OrangePurpleConstructable
     private VideoServerHigh(int port, String webroot) {
         this.port = port;
         this.webroot = webroot;
     }
     
+    @OrangePurpleCallable
     public static void startServer(int port, String webroot) {
         if (started) {
             return;

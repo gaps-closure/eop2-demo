@@ -17,12 +17,12 @@ import javax.websocket.EndpointConfig;
 
 import com.google.gson.Gson;
 
-public class RequestEncoder implements Encoder.Text<Request> {
+public class RequestEncoderHigh implements Encoder.Text<RequestHigh> {
 
     private static Gson gson = new Gson();
 
     @Override
-    public String encode(Request message) throws EncodeException {
+    public String encode(RequestHigh message) throws EncodeException {
         return gson.toJson(message);
     }
 

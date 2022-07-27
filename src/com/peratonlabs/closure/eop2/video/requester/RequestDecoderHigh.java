@@ -11,19 +11,24 @@
  */
 package com.peratonlabs.closure.eop2.video.requester;
 
-import javax.websocket.EncodeException;
-import javax.websocket.Encoder;
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
 import javax.websocket.EndpointConfig;
 
 import com.google.gson.Gson;
 
-public class RequestEncoder implements Encoder.Text<Request> {
+public class RequestDecoderHigh implements Decoder.Text<RequestHigh> {
 
     private static Gson gson = new Gson();
 
     @Override
-    public String encode(Request message) throws EncodeException {
-        return gson.toJson(message);
+    public RequestHigh decode(String s) throws DecodeException {
+        return gson.fromJson(s, RequestHigh.class);
+    }
+
+    @Override
+    public boolean willDecode(String s) {
+        return (s != null);
     }
 
     @Override

@@ -15,38 +15,38 @@ import java.util.concurrent.LinkedBlockingQueue;
 import javax.websocket.Session;
 
 import com.peratonlabs.closure.eop2.level.VideoRequester;
-import com.peratonlabs.closure.eop2.video.requester.Request;
+import com.peratonlabs.closure.eop2.video.requester.RequestHigh;
 import com.peratonlabs.closure.annotations.*;
 
 public class VideoRequesterHigh extends VideoRequester
 {
     private static boolean serverStarted = false;
     private static HashMap<String, VideoRequesterHigh> clients = new HashMap<String, VideoRequesterHigh>();
-    private static LinkedBlockingQueue<Request> queue = new LinkedBlockingQueue<Request>();
+    private static LinkedBlockingQueue<RequestHigh> queue = new LinkedBlockingQueue<RequestHigh>();
 
     private VideoRequesterHigh(String id) {
         this.id = id;
     }
     
     // south bound from VideoEndpointHigh
-    public static void handleMessage(Request request, Session channel) {
+    public static void handleMessage(RequestHigh request, Session channel) {
         String id = request.getId();
         VideoRequesterHigh client = clients.get(id);
         if (client == null) {
             client = new VideoRequesterHigh(id);
             clients.put(request.getId(), client);
         }
-        client.onMessage(request, channel);
+        client.onMessageHigh(request, channel);
 
         queue.add(request); // wait for VideoManager to retrieve it
     }
     
     // VideoManager retrieves requests by calling this function
     @OrangePurpleCallable
-    public static Request getRequest() {
+    public static RequestHigh getRequest() {
         if (!queue.isEmpty()) {
             try {
-                Request request = queue.take();
+                RequestHigh request = queue.take();
                 return request;
             }
             catch (InterruptedException e) {

@@ -1,4 +1,4 @@
-<project name="ClosureVideo" basedir="." default="default">
+<project name="TESTPROGRAM" basedir="." default="default">
 	<property name="author"     value=""                                   />
 	<property name="vendor"     value=""                                   />
 	<property name="version"    value=""                                   />
